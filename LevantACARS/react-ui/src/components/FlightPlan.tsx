@@ -365,34 +365,34 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
             <PlaneTakeoff size={11} className="text-amber-400" />
             <span className="text-[9px] font-bold text-amber-400 uppercase tracking-[0.2em]">Airborne — No Flight Plan</span>
           </div>
-          <p className="text-[9px] text-slate-600/70 font-mono tracking-wider">Altitude {Math.round(telemetry.altitude).toLocaleString()} FT detected — fetch SimBrief to begin tracking</p>
+          <p className="text-[9px] text-slate-600/70 font-mono tracking-wider">Altitude {Math.round(telemetry.altitude).toLocaleString()} FT detected — fetch bid to begin tracking</p>
           <HoverBorderGradient
             onClick={() => {
               if (pilotId) {
-                fetchSimBrief(pilotId).then(result => {
-                  if (result.flightPlan) {
+                fetchActiveBid(pilotId).then(result => {
+                  if (result.bid) {
                     const bidData: BidData = {
                       type: 'bid',
-                      callsign: result.flightPlan.callsign,
-                      flightNumber: result.flightPlan.flightNumber || '',
-                      departureIcao: result.flightPlan.departureIcao,
-                      arrivalIcao: result.flightPlan.arrivalIcao,
-                      departureName: result.flightPlan.departureName || '',
-                      arrivalName: result.flightPlan.arrivalName || '',
-                      aircraftType: result.flightPlan.aircraftType || '',
-                      aircraftRegistration: result.flightPlan.aircraftRegistration || '',
-                      route: result.flightPlan.route || '',
-                      pax: result.flightPlan.pax || 0,
-                      cargo: result.flightPlan.cargo || 0,
-                      createdAt: result.flightPlan.createdAt,
-                      expiresAt: result.flightPlan.expiresAt,
+                      callsign: result.bid.callsign,
+                      flightNumber: result.bid.flightNumber || '',
+                      departureIcao: result.bid.departureIcao,
+                      arrivalIcao: result.bid.arrivalIcao,
+                      departureName: result.bid.departureName || '',
+                      arrivalName: result.bid.arrivalName || '',
+                      aircraftType: result.bid.aircraftType || '',
+                      aircraftRegistration: result.bid.aircraftRegistration || '',
+                      route: result.bid.route || '',
+                      pax: result.bid.pax || 0,
+                      cargo: result.bid.cargo || 0,
+                      createdAt: result.bid.createdAt,
+                      expiresAt: result.bid.expiresAt,
                     };
                     injectBid?.(bidData);
-                    pushToast('success', `SimBrief loaded: ${bidData.departureIcao} → ${bidData.arrivalIcao}`);
+                    pushToast('success', `Bid loaded: ${bidData.departureIcao} → ${bidData.arrivalIcao}`);
                   } else if (result.error) {
                     pushToast('danger', result.error);
                   } else {
-                    pushToast('info', 'No SimBrief flight plan found');
+                    pushToast('info', 'No active bid found');
                   }
                 }).catch(() => {});
               }
@@ -401,7 +401,7 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
           >
             <span className="flex items-center gap-2 text-accent-gold">
               <RefreshCw size={13} />
-              Fetch SimBrief
+              Fetch Bid
             </span>
           </HoverBorderGradient>
         </div>
