@@ -9,30 +9,67 @@ export async function GET() {
         
         const metarPromises = AIRPORTS.map(async (icao) => {
             try {
-                const headers: HeadersInit = {
+                // Try IVAO API first
+                const ivaoHeaders: HeadersInit = {
                     'Accept': 'application/json',
                 };
                 
-                // Add authentication if credentials are available
                 if (clientId && clientSecret) {
-                    headers['Authorization'] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`;
+                    ivaoHeaders['Authorization'] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`;
                 }
                 
-                const response = await fetch(`https://api.ivao.aero/v2/airports/${icao}/metar`, {
-                    headers,
-                    next: { revalidate: 300 } // Cache for 5 minutes
+                const ivaoResponse = await fetch(`https://api.ivao.aero/v2/airports/${icao}`, {
+                    headers: ivaoHeaders,
+                    cache: 'no-store'
                 });
                 
-                if (!response.ok) {
-                    return { icao, metar: 'METAR not available', error: true };
+                if (ivaoResponse.ok) {
+                    const ivaoData = await ivaoResponse.json();
+                    if (ivaoData?.metar) {
+                        return {
+                            icao,
+                            metar: ivaoData.metar,
+                            error: false
+                        };
+                    }
                 }
                 
-                const data = await response.json();
-                return {
-                    icao,
-                    metar: data.metar || 'METAR not available',
-                    error: false
-                };
+                // Fallback to CheckWX API (public, no auth needed)
+                const checkwxResponse = await fetch(`https://api.checkwx.com/metar/${icao}/decoded`, {
+                    headers: {
+                        'X-API-Key': 'YOUR_CHECKWX_KEY' // Optional - works without key for limited requests
+                    },
+                    cache: 'no-store'
+                });
+                
+                if (checkwxResponse.ok) {
+                    const checkwxData = await checkwxResponse.json();
+                    if (checkwxData?.data?.[0]) {
+                        return {
+                            icao,
+                            metar: checkwxData.data[0],
+                            error: false
+                        };
+                    }
+                }
+                
+                // Final fallback to AVWX (public API)
+                const avwxResponse = await fetch(`https://avwx.rest/api/metar/${icao}`, {
+                    cache: 'no-store'
+                });
+                
+                if (avwxResponse.ok) {
+                    const avwxData = await avwxResponse.json();
+                    if (avwxData?.raw) {
+                        return {
+                            icao,
+                            metar: avwxData.raw,
+                            error: false
+                        };
+                    }
+                }
+                
+                return { icao, metar: 'METAR not available', error: true };
             } catch (error) {
                 console.error(`Error fetching METAR for ${icao}:`, error);
                 return { icao, metar: 'METAR not available', error: true };
