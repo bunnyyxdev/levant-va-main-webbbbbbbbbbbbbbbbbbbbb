@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
         const token = request.cookies.get('lva_session')?.value;
 
         if (!token) {
-            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+            return NextResponse.json({ user: null });
         }
 
         const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
@@ -40,6 +40,6 @@ export async function GET(request: NextRequest) {
         });
     } catch (error) {
         console.error('Auth check error:', error);
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        return NextResponse.json({ user: null });
     }
 }
