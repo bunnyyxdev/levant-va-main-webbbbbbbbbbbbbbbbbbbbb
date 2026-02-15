@@ -355,7 +355,7 @@ export default function DashboardPage() {
                                 <h2 className="text-sm font-bold text-white">Newest Pilots</h2>
                                 <p className="text-xs text-gray-500">Recently joined</p>
                             </div>
-                        </motion.div>
+                        </div>
                         <div className="p-4 space-y-3">
                             {dashboardData.newestPilots.slice(0, 5).map((pilot: any, i: number) => (
                                 <motion.div
