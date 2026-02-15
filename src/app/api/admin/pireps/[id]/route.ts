@@ -99,6 +99,22 @@ export async function PUT(
             const status = parseInt(approved_status);
             const route = `${pirep.departure_icao} → ${pirep.arrival_icao}`;
             if (status === 1) {
+                // Award credits for approved manual PIREP
+                const pilot = await Pilot.findById(pirep.pilot_id);
+                if (pilot && pirep.is_manual) {
+                    // Calculate base pay: $50 per minute of flight time
+                    const flightTimeMinutes = pirep.flight_time || 0;
+                    const basePay = flightTimeMinutes * 50;
+                    
+                    // Update pilot stats
+                    pilot.balance = (pilot.balance || 0) + basePay;
+                    pilot.total_credits = (pilot.total_credits || 0) + basePay;
+                    pilot.total_flights = (pilot.total_flights || 0) + 1;
+                    pilot.total_hours = (pilot.total_hours || 0) + (flightTimeMinutes / 60);
+                    
+                    await pilot.save();
+                }
+                
                 await createNotification({
                     pilotId: pirep.pilot_id,
                     type: 'pirep_approved',
