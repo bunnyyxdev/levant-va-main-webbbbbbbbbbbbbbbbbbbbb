@@ -102,13 +102,34 @@ export default function SimBriefPage() {
                     </ol>
                 </div>
 
-                <div className="border-t border-white/[0.08] pt-6">
+                <div className="border-t border-white/[0.08] pt-6 space-y-4">
+                    {simbriefId && (
+                        <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3">
+                            <p className="text-xs text-cyan-400/80">
+                                <strong className="text-cyan-400">SimBrief ID:</strong> {simbriefId}
+                            </p>
+                        </div>
+                    )}
+                    
+                    {!fetchingId && !simbriefId && (
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                            <p className="text-xs text-amber-400">
+                                <strong className="text-amber-400">Warning:</strong> SimBrief ID not configured. Please add your SimBrief ID in <a href="/portal/settings" className="underline hover:text-amber-300">Settings</a> first.
+                            </p>
+                        </div>
+                    )}
+                    
                     <button
                         onClick={handleFetchSimBrief}
-                        disabled={loading}
+                        disabled={loading || !simbriefId || fetchingId}
                         className="w-full py-3 px-4 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer border-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
                     >
-                        {loading ? (
+                        {fetchingId ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Loading...
+                            </>
+                        ) : loading ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 Fetching...
