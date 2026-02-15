@@ -46,26 +46,29 @@ export async function POST(request: NextRequest) {
 
         // Delete any existing bids for this pilot
         await Bid.deleteMany({ pilot_id: pilot._id });
+        console.log(`[SimBrief-to-Bid] Deleted existing bids for pilot ${pilot.pilot_id}`);
 
         // Create bid from SimBrief data
-        const bid = await Bid.create({
+        const bidData = {
             pilot_id: pilot._id,
-            flight_number: sbData.general?.flight_number || sbData.atc?.callsign || '',
+            pilot_name: `${pilot.first_name} ${pilot.last_name}`,
             callsign: sbData.atc?.callsign || pilot.pilot_id,
             departure_icao: sbData.origin?.icao_code || '',
             arrival_icao: sbData.destination?.icao_code || '',
-            departure_name: sbData.origin?.name || '',
-            arrival_name: sbData.destination?.name || '',
-            aircraft_type: sbData.aircraft?.icaocode || '',
+            aircraft_type: sbData.aircraft?.icaocode || 'A320',
             aircraft_registration: sbData.aircraft?.reg || '',
             route: sbData.general?.route || '',
             pax: parseInt(sbData.weights?.pax_count || '0'),
             cargo: parseInt(sbData.weights?.cargo || '0'),
             simbrief_ofp_id: sbData.params?.ofp_id || '',
             planned_fuel: parseInt(sbData.fuel?.plan_ramp || '0'),
+            status: 'Active' as const,
             created_at: new Date(),
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-        });
+        };
+        
+        console.log(`[SimBrief-to-Bid] Creating bid with data:`, JSON.stringify(bidData, null, 2));
+        const bid = await Bid.create(bidData);
 
         console.log(`[SimBrief-to-Bid] Created bid for ${pilot.pilot_id}: ${bid.departure_icao} → ${bid.arrival_icao}`);
 
