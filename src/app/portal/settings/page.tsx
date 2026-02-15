@@ -101,15 +101,25 @@ export default function SettingsPage() {
         setIntegrationsMessage(null);
         setIntegrationsLoading(true);
         try {
-            // Save all integrations in parallel
-            const [simbriefRes, acarsRes, networkRes, countryRes] = await Promise.all([
+            // Save all integrations in parallel (only save country if it has a value)
+            const requests = [
                 fetch('/api/settings/simbrief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ simbriefId }) }),
                 fetch('/api/settings/acars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hoppieCode, simMode, weightUnit }) }),
                 fetch('/api/settings/network-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vatsimId, ivaoId }) }),
-                fetch('/api/settings/country', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country }) })
-            ]);
+            ];
+            
+            // Only save country if it has a value
+            if (country) {
+                requests.push(fetch('/api/settings/country', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country }) }));
+            }
+            
+            const responses = await Promise.all(requests);
+            const [simbriefRes, acarsRes, networkRes, countryRes] = responses;
 
-            if (simbriefRes.ok && acarsRes.ok && networkRes.ok && countryRes.ok) {
+            // Check if all responses are ok (countryRes is optional)
+            const allOk = simbriefRes.ok && acarsRes.ok && networkRes.ok && (!countryRes || countryRes.ok);
+            
+            if (allOk) {
                 setIntegrationsMessage({ type: 'success', text: 'All settings saved successfully! Restart ACARS to apply changes.' });
             } else {
                 setIntegrationsMessage({ type: 'error', text: 'Some settings failed to save. Please try again.' });
