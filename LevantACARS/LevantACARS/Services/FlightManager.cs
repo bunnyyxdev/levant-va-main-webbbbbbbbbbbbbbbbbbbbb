@@ -242,11 +242,8 @@ public sealed class FlightManager : IDisposable
                 }
             });
 
-        // Notify API (fire-and-forget)
+        // Notify API (fire-and-forget) - API handles Discord notifications
         _ = _api.NotifyFlightStartAsync(p.PilotId, p.FlightNumber, p.Callsign, p.DepartureIcao, p.ArrivalIcao, p.AircraftType);
-
-        // Discord webhook notification
-        _ = _webhook.NotifyFlightStartAsync(p.PilotId, p.FlightNumber, p.DepartureIcao, p.ArrivalIcao, p.AircraftType);
 
         // Discord Rich Presence — show active flight
         try { _discord.SetFlightActive(p.FlightNumber, p.DepartureIcao, p.ArrivalIcao, FlightPhase.Preflight); }
@@ -535,31 +532,16 @@ public sealed class FlightManager : IDisposable
             Comments = null,
         };
 
+        // Finalize pause tracking if sim is still paused at submission
+        if (_pauseStartTime != null)
+        {
+            _totalSecondsPaused += (DateTime.UtcNow - _pauseStartTime.Value).TotalSeconds;
+            _pauseStartTime = null;
+        }
+
+        // Submit PIREP and notify API - API handles Discord notifications
         _ = _api.SubmitPirepAsync(pirep);
         _ = _api.NotifyFlightEndAsync(_pilotId ?? "", score.Rejected ? "rejected" : "completed");
-
-        // Discord webhook — flight completed or rejected
-        if (score.Rejected)
-        {
-            _ = _webhook.NotifyFlightRejectedAsync(
-                _pilotId ?? "Unknown", _flightNumber ?? "", "Score too low or crash detected");
-        }
-        else
-        {
-            // Finalize pause tracking if sim is still paused at submission
-            if (_pauseStartTime != null)
-            {
-                _totalSecondsPaused += (DateTime.UtcNow - _pauseStartTime.Value).TotalSeconds;
-                _pauseStartTime = null;
-            }
-
-            _ = _webhook.NotifyFlightCompletedAsync(
-                _pilotId ?? "Unknown", _flightNumber ?? "",
-                _departureIcao ?? "", _arrivalIcao ?? "",
-                score.FinalScore, score.LandingGrade.Grade.ToString(),
-                _landingRate, flightTimeMinutes, _totalDistanceNm,
-                _isNonStandard, _totalSecondsPaused, CalculateIntegrityScore());
-        }
 
         OnFlightEvent?.Invoke($"PIREP submitted — Score: {score.FinalScore}%, Grade: {score.LandingGrade.Grade}");
 

@@ -61,18 +61,7 @@ public partial class App : Application
             Log.Warning(ex, "[App] Discord initialization failed — continuing without Rich Presence");
         }
 
-        // ── Initialize Discord Webhook ──────────────────────────────────
-        try
-        {
-            var webhook = _serviceProvider.GetRequiredService<DiscordWebhookService>();
-            webhook.Initialize();
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "[App] Discord webhook initialization failed — continuing without webhook");
-        }
-
-        // ── Refresh pilot profile if already authenticated ──────────────
+        // ── Initialize Auth Service ───────────────────────────────────────
         if (config.IsAuthenticated)
         {
             try
