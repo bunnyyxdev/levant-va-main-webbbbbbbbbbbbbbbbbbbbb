@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
     Clock, TrendingDown, Target, Zap,
-    Plane, Calendar, Edit3, X, Check, User, Shield,
-    ChevronRight, Trophy, Medal, Camera, Loader2, Trash2
+    Plane, Calendar, Check, User, Shield,
+    ChevronRight, Trophy, Medal, Camera, Loader2, Trash2, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,6 +19,7 @@ interface Pilot {
     country: string;
     timezone: string;
     vatsim_id?: string;
+    ivao_id?: string;
     simbrief_id?: string;
     avatar_url?: string;
     total_hours: number;
@@ -158,12 +159,9 @@ function CountrySelect({ countries, value, onChange, getFlagUrl }: {
 
 export default function ProfilePage() {
     const [pilot, setPilot] = useState<Pilot | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState<Partial<Pilot>>({});
     const [flightHistory, setFlightHistory] = useState<any[]>([]);
     const [countries, setCountries] = useState<Country[]>([]);
-    const [availableTimezones, setAvailableTimezones] = useState<string[]>([]);
     const [pilotBadges, setPilotBadges] = useState<PilotBadge[]>([]);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [avatarError, setAvatarError] = useState(false);
@@ -185,11 +183,6 @@ export default function ProfilePage() {
                     .sort((a: Country, b: Country) => a.name.localeCompare(b.name));
                 setCountries(formattedCountries);
                 
-                const allTimezones = new Set<string>();
-                formattedCountries.forEach((c: Country) => {
-                    c.timezones.forEach(tz => allTimezones.add(tz));
-                });
-                setAvailableTimezones(Array.from(allTimezones).sort());
             } catch (error) {
                 console.error('Failed to fetch countries:', error);
             }
@@ -231,7 +224,6 @@ export default function ProfilePage() {
                     avatar_url: `https://res.cloudinary.com/${cloudName}/image/upload/avatars/pilot_${data.pilot.pilot_id}`
                 };
                 setPilot(pilotWithAvatar);
-                setFormData(pilotWithAvatar);
                 
                 const isDeleted = localStorage.getItem(`avatar_deleted_${data.pilot.pilot_id}`);
                 if (isDeleted === 'true') {
@@ -252,29 +244,6 @@ export default function ProfilePage() {
             setLoading(false);
         }
     }, []);
-
-    const handleUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!pilot) return;
-
-        try {
-            const res = await fetch('/api/pilots', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    pilotId: pilot.pilot_id,
-                    updates: formData
-                })
-            });
-
-            if (res.ok) {
-                setPilot({ ...pilot, ...formData } as Pilot);
-                setIsEditing(false);
-            }
-        } catch (error) {
-            console.error('Update failed:', error);
-        }
-    };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -677,90 +646,37 @@ export default function ProfilePage() {
                         transition={{ delay: 0.3 }}
                         className="bg-[#141414] rounded-2xl border border-white/[0.04]/50 overflow-hidden"
                     >
-                        <div className="p-5 border-b border-white/[0.04]/50 flex items-center justify-between">
+                        <div className="p-5 border-b border-white/[0.04]/50">
                             <h2 className="text-lg font-semibold text-white">Pilot Details</h2>
-                            <button
-                                onClick={() => setIsEditing(!isEditing)}
-                                className="text-xs text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1"
-                            >
-                                {isEditing ? <><X className="w-3 h-3" /> Cancel</> : <><Edit3 className="w-3 h-3" /> Edit</>}
-                            </button>
                         </div>
 
                         <div className="p-5">
-                            {isEditing ? (
-                                <form onSubmit={handleUpdate} className="space-y-4">
-                                    <div>
-                                        <label className="block text-gray-500 text-xs mb-2 uppercase tracking-wider">Country</label>
-                                        <CountrySelect 
-                                            countries={countries}
-                                            value={formData.country || ''}
-                                            onChange={(code) => setFormData({ ...formData, country: code })}
-                                            getFlagUrl={getFlagUrl}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-gray-500 text-xs mb-2 uppercase tracking-wider">Timezone</label>
-                                        <select
-                                            className="w-full bg-[#141414] border border-white/[0.04] rounded-lg px-4 py-3 text-white focus:border-amber-500/50 focus:outline-none"
-                                            value={formData.timezone || ''}
-                                            onChange={e => setFormData({ ...formData, timezone: e.target.value })}
-                                        >
-                                            {availableTimezones.map((tz: string) => (
-                                                <option key={tz} value={tz}>{tz}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-gray-500 text-xs mb-2 uppercase tracking-wider">VATSIM</label>
-                                            <input
-                                                type="text"
-                                                className="w-full bg-[#141414] border border-white/[0.04] rounded-lg px-4 py-3 text-white focus:border-amber-500/50 focus:outline-none text-sm"
-                                                placeholder="CID"
-                                                value={formData.vatsim_id || ''}
-                                                onChange={e => setFormData({ ...formData, vatsim_id: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-
-
-                                    <button 
-                                        type="submit" 
-                                        className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium py-3 rounded-lg transition-colors mt-2"
-                                    >
-                                        Save Changes
-                                    </button>
-                                </form>
-                            ) : (
-                                <div className="space-y-4">
-                                    {[
-                                        { label: 'Origin', value: pilot.country ? (
-                                            <span className="flex items-center gap-2">
-                                                <img src={getFlagUrl(pilot.country)} alt="" className="w-5 h-4 rounded" />
-                                                {getCountryName(pilot.country)}
+                            <div className="space-y-4">
+                                {[
+                                    { label: 'Origin', value: pilot.country ? (
+                                        <span className="flex items-center gap-2">
+                                            <img src={getFlagUrl(pilot.country)} alt="" className="w-5 h-4 rounded" />
+                                            {getCountryName(pilot.country)}
+                                        </span>
+                                    ) : 'Not set', highlight: false },
+                                    { label: 'VATSIM CID', value: pilot.vatsim_id || 'Not Provided', link: pilot.vatsim_id ? `https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_id}` : null, highlight: !!pilot.vatsim_id },
+                                    { label: 'IVAO VID', value: pilot.ivao_id || 'Not Provided', link: pilot.ivao_id ? `https://www.ivao.aero/Member.aspx?Id=${pilot.ivao_id}` : null, highlight: !!pilot.ivao_id },
+                                    { label: 'Landing Avg', value: `${Math.abs(pilot.average_landing)} fpm`, color: landingQuality === 'butter' ? 'text-emerald-400' : landingQuality === 'good' ? 'text-emerald-400' : 'text-amber-400', highlight: true },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex justify-between items-center py-2 border-b border-white/[0.04]/30 last:border-0">
+                                        <span className="text-gray-500 text-sm">{item.label}</span>
+                                        {item.link ? (
+                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
+                                                {item.value}
+                                            </a>
+                                        ) : (
+                                            <span className={`text-sm ${item.color || (item.highlight ? 'text-white' : 'text-gray-600')}`}>
+                                                {item.value}
                                             </span>
-                                        ) : 'Not set', highlight: false },
-                                        { label: 'VATSIM CID', value: pilot.vatsim_id || 'Not Provided', link: pilot.vatsim_id ? `https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_id}` : null, highlight: !!pilot.vatsim_id },
-                                        { label: 'Landing Avg', value: `${Math.abs(pilot.average_landing)} fpm`, color: landingQuality === 'butter' ? 'text-emerald-400' : landingQuality === 'good' ? 'text-emerald-400' : 'text-amber-400', highlight: true },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex justify-between items-center py-2 border-b border-white/[0.04]/30 last:border-0">
-                                            <span className="text-gray-500 text-sm">{item.label}</span>
-                                            {item.link ? (
-                                                <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm transition-colors">
-                                                    {item.value}
-                                                </a>
-                                            ) : (
-                                                <span className={`text-sm ${item.color || (item.highlight ? 'text-white' : 'text-gray-600')}`}>
-                                                    {item.value}
-                                                </span>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
 
