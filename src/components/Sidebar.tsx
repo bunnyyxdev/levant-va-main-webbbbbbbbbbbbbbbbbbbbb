@@ -81,6 +81,7 @@ export default function Sidebar() {
         {
             category: 'OPERATIONS',
             items: [
+                { name: 'SimBrief', path: '/portal/simbrief', icon: Plane },
                 { name: 'My Reports', path: '/portal/reports', icon: FileText },
                 { name: 'Tours & Events', path: '/portal/activities', icon: Map },
                 { name: 'Leaderboard', path: '/portal/leaderboard', icon: Trophy },
