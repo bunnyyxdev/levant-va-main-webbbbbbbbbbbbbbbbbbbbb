@@ -327,7 +327,7 @@ public sealed class FsuipcService : IDisposable
             GForce = gForce,
             OnGround = onGround,
             TotalFuel = resolvedFuel,
-            EnginesOn = (_eng1Combustion?.Value ?? 0) > 0 || (_eng2Combustion?.Value ?? 0) > 0,
+            EnginesOn = (_eng1Combustion?.Value ?? 0) > 0 && (_eng2Combustion?.Value ?? 0) > 0,
             Lights = _lightsOffset?.Value ?? 0,
             StallWarning = (_stallOffset?.Value ?? 0) > 0,
             OverspeedWarning = (_overspeedOffset?.Value ?? 0) > 0,
