@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { list } from '@vercel/blob';
 
-const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levantva-wewwwwwwwwwwwwwwwwwwwwwdb';
+const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levant-va-main-webbbbbbbbbbbbbbbbbbbbb';
 const LIVERIES_PATH = 'liveries';
 
 // GET /api/cdn/download?path=file.zip — Download a file

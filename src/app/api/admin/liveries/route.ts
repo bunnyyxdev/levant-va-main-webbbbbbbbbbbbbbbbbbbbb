@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 
-const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levantva-wewwwwwwwwwwwwwwwwwwwwwdb';
+const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levant-va-main-webbbbbbbbbbbbbbbbbbbbb';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const LIVERIES_PATH = 'liveries';
 

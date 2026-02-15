@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levantva-wewwwwwwwwwwwwwwwwwwwwwdb';
+const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levant-va-main-webbbbbbbbbbbbbbbbbbbbb';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const LIVERIES_PATH = 'liveries';
 

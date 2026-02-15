@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             latestVersion: stableVersion,
-            downloadUrl: verSummary?.download_url || "https://github.com/bunnyyxdev/levantva-wewwwwwwwwwwwwwwwwwwwwwdb/releases/latest",
+            downloadUrl: verSummary?.download_url || "https://github.com/bunnyyxdev/levant-va-main-webbbbbbbbbbbbbbbbbbbbb/releases/latest",
             criticalUpdate: false,
             publishedAt: verSummary?.updatedAt || new Date()
         });
