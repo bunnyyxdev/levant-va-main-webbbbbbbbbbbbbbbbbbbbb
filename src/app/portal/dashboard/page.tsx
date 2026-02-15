@@ -57,7 +57,6 @@ export default function DashboardPage() {
     });
     const [currentFlightPage, setCurrentFlightPage] = useState(0);
     const [currentReportPage, setCurrentReportPage] = useState(0);
-    const [activeBid, setActiveBid] = useState<any>(null);
 
     const totalFlightPages = useMemo(() => Math.ceil(dashboardData.activeFlights.length / ITEMS_PER_PAGE), [dashboardData.activeFlights.length]);
     const totalReportPages = useMemo(() => Math.ceil(dashboardData.recentReports.length / ITEMS_PER_PAGE), [dashboardData.recentReports.length]);
@@ -67,11 +66,10 @@ export default function DashboardPage() {
             try { const r = await fetch(url); return await r.json(); } catch { return null; }
         };
 
-        const [statsData, pilotsData, reportsData, bidData] = await Promise.all([
-            safeFetch('/api/portal/dashboard/stats'),
-            safeFetch('/api/portal/dashboard/newest-pilots'),
-            safeFetch('/api/portal/dashboard/recent-reports'),
-            safeFetch('/api/bids/active'),
+        const [statsData, pilotsData, reportsData] = await Promise.all([
+            safeFetch('/api/portal/stats'),
+            safeFetch('/api/portal/new-pilots'),
+            safeFetch('/api/portal/reports/recent'),
         ]);
 
         setDashboardData(prev => ({
@@ -81,14 +79,12 @@ export default function DashboardPage() {
             recentReports: reportsData?.reports || [],
             dotm: statsData?.dotm || null,
         }));
-
-        if (bidData?.bid) setActiveBid(bidData.bid);
         setLoading(false);
     }, []);
 
     const fetchFlights = useCallback(async () => {
         try {
-            const res = await fetch('/api/portal/dashboard/active-flights');
+            const res = await fetch('/api/portal/active-flights');
             const data = await res.json();
             setDashboardData(prev => ({ ...prev, activeFlights: data.flights || [] }));
         } catch {}
@@ -304,26 +300,6 @@ export default function DashboardPage() {
 
                 {/* Right Column - Sidebar */}
                 <div className="space-y-6">
-                    {/* Active Bid */}
-                    {activeBid && (
-                        <motion.div variants={itemVariants} className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 rounded-2xl border border-amber-500/20 p-5">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Zap className="w-5 h-5 text-amber-500" />
-                                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Active Bid</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-lg font-mono font-bold text-amber-500">{activeBid.departure_icao}</span>
-                                    <ChevronRight className="w-4 h-4 text-gray-600" />
-                                    <span className="text-lg font-mono font-bold text-amber-500">{activeBid.arrival_icao}</span>
-                                </div>
-                                <div className="text-xs text-gray-400">
-                                    {activeBid.aircraft_type} • {activeBid.flight_number}
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-
                     {/* Pilot of the Month */}
                     {dashboardData.dotm && (
                         <motion.div variants={itemVariants} className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-2xl border border-purple-500/20 p-5">
