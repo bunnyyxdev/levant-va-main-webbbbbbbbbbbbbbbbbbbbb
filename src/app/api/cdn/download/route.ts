@@ -4,10 +4,6 @@ import { list } from '@vercel/blob';
 const GITHUB_REPO = process.env.GITHUB_LIVERIES_REPO || 'bunnyyxdev/levant-va-main-webbbbbbbbbbbbbbbbbbbbb';
 const LIVERIES_PATH = 'liveries';
 
-// GET /api/cdn/download?path=file.zip — Download a file
-// Supports: ?type=livery&file=name.zip  → GitHub redirect (302)
-//           ?path=uploads/file.zip      → Vercel Blob redirect
-//           ?folder=uploads             → List Vercel Blob files
 export async function GET(request: NextRequest) {
     try {
         const type = request.nextUrl.searchParams.get('type');
