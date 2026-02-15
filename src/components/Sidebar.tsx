@@ -137,11 +137,11 @@ export default function Sidebar() {
     }, []);
 
     return (
-        <aside className="w-64 bg-[#0a0e17] border-r border-white/[0.06] flex-shrink-0 flex flex-col h-screen fixed top-0 left-0 overflow-y-auto overflow-x-hidden z-50">
+        <aside className="w-64 bg-gradient-to-b from-[#0a0e17] to-[#0d1117] border-r border-cyan-500/10 flex-shrink-0 flex flex-col h-screen fixed top-0 left-0 overflow-y-auto overflow-x-hidden z-50 shadow-2xl shadow-cyan-500/5">
             {/* Logo */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
-                <Link href="/portal/dashboard" className="block">
-                    <img src="/img/logo.png" alt="Levant" className="h-16 w-auto" />
+            <div className="flex items-center justify-between px-5 py-6 border-b border-cyan-500/10 bg-gradient-to-r from-cyan-500/5 to-transparent">
+                <Link href="/portal/dashboard" className="block group">
+                    <img src="/img/logo.png" alt="Levant" className="h-16 w-auto transition-transform group-hover:scale-105" />
                 </Link>
             </div>
 
@@ -156,33 +156,33 @@ export default function Sidebar() {
                             {isAdminCategory ? (
                                 <>
                                     <div className="mx-3 mb-4 mt-1">
-                                        <div className="h-px bg-gradient-to-r from-transparent via-accent-gold/30 to-transparent" />
+                                        <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
                                     </div>
                                     <div className="flex items-center gap-2 px-3 mb-2">
-                                        <span className="text-[9px] font-black tracking-[0.3em] uppercase bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+                                        <span className="text-[9px] font-black tracking-[0.3em] uppercase bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                                             {category.category}
                                         </span>
-                                        <span className="h-px flex-1 bg-gradient-to-r from-accent-gold/20 to-transparent" />
+                                        <span className="h-px flex-1 bg-gradient-to-r from-cyan-500/30 to-transparent" />
                                     </div>
                                 </>
                             ) : (
-                                <h3 className="text-[9px] font-bold text-gray-600 tracking-[0.25em] mb-2 px-3 uppercase">
+                                <h3 className="text-[9px] font-bold text-cyan-500/60 tracking-[0.25em] mb-2 px-3 uppercase">
                                     {category.category}
                                 </h3>
                             )}
                             <div className="space-y-0.5">
                                 {category.items.map((item) => {
                                     const active = isActive(item.path);
-                                    const linkClasses = `flex items-center px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 group relative ${
+                                    const linkClasses = `flex items-center px-3 py-2.5 text-[13px] font-medium rounded-xl transition-all duration-200 group relative ${
                                         active
-                                            ? 'bg-accent-gold/[0.08] text-accent-gold'
-                                            : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                                            ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-400 shadow-lg shadow-cyan-500/10 border border-cyan-500/20'
+                                            : 'text-gray-400 hover:text-white hover:bg-gradient-to-r hover:from-cyan-500/5 hover:to-transparent border border-transparent'
                                     }`;
-                                    const iconClasses = `w-[18px] h-[18px] mr-3 transition-colors duration-200 flex-shrink-0 ${
-                                        active ? 'text-accent-gold' : 'text-gray-500 group-hover:text-accent-gold'
+                                    const iconClasses = `w-[18px] h-[18px] mr-3 transition-all duration-200 flex-shrink-0 ${
+                                        active ? 'text-cyan-400' : 'text-gray-500 group-hover:text-cyan-400 group-hover:scale-110'
                                     }`;
                                     const activeBar = active ? (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-accent-gold rounded-r-full" />
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-r-full shadow-lg shadow-cyan-500/50" />
                                     ) : null;
 
                                     if (item.external) {
@@ -212,20 +212,20 @@ export default function Sidebar() {
                                 {/* Admin sub-group items (flat list) */}
                                 {isAdminCategory && adminSubGroups.map((group) => (
                                     <div key={group.label}>
-                                        <div className="px-3 py-2 text-[9px] font-bold text-gray-600 uppercase tracking-[0.15em]">
+                                        <div className="px-3 py-2 text-[9px] font-bold text-cyan-500/50 uppercase tracking-[0.15em]">
                                             {group.label}
                                         </div>
                                         {group.items.map((item) => {
                                             const active = isActive(item.path);
-                                            const linkClasses = `flex items-center px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 group relative ${
+                                            const linkClasses = `flex items-center px-3 py-2.5 text-[13px] font-medium rounded-xl transition-all duration-200 group relative ${
                                                 active
-                                                    ? 'bg-accent-gold/[0.08] text-accent-gold'
-                                                    : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                                                    ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-400 shadow-lg shadow-cyan-500/10 border border-cyan-500/20'
+                                                    : 'text-gray-400 hover:text-white hover:bg-gradient-to-r hover:from-cyan-500/5 hover:to-transparent border border-transparent'
                                             }`;
-                                            const iconClasses = `w-[18px] h-[18px] mr-3 transition-colors duration-200 flex-shrink-0 ${
-                                                active ? 'text-accent-gold' : 'text-gray-500 group-hover:text-accent-gold'
+                                            const iconClasses = `w-[18px] h-[18px] mr-3 transition-all duration-200 flex-shrink-0 ${
+                                                active ? 'text-cyan-400' : 'text-gray-500 group-hover:text-cyan-400 group-hover:scale-110'
                                             }`;
-                                            const activeBar = active ? <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-accent-gold rounded-r-full" /> : null;
+                                            const activeBar = active ? <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-r-full shadow-lg shadow-cyan-500/50" /> : null;
                                             return (
                                                 <Link
                                                     key={item.name}
@@ -250,24 +250,24 @@ export default function Sidebar() {
             <div className="border-t border-white/[0.04] p-2 space-y-1">
                 {/* Airline Vault Widget */}
                 {isAdmin && vaultBalance !== null && (
-                    <Link href="/portal/admin/settings" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-gold/[0.05] border border-accent-gold/10 hover:border-accent-gold/20 transition-all group">
-                        <Landmark size={16} className="text-accent-gold flex-shrink-0" />
+                    <Link href="/portal/admin/settings" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 hover:border-cyan-500/40 transition-all group shadow-lg shadow-cyan-500/5">
+                        <Landmark size={16} className="text-cyan-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
                         <div className="min-w-0">
-                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-wider">Airline Vault</div>
-                            <div className="text-xs font-mono font-bold text-accent-gold truncate">{vaultBalance.toLocaleString()} Cr</div>
+                            <div className="text-[8px] font-bold text-cyan-500/60 uppercase tracking-wider">Airline Vault</div>
+                            <div className="text-xs font-mono font-bold text-cyan-400 truncate">{vaultBalance.toLocaleString()} Cr</div>
                         </div>
                     </Link>
                 )}
 
                 {/* Pilot callsign badge */}
                 {user && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-                        <div className="w-6 h-6 rounded-full bg-accent-gold/10 border border-accent-gold/20 flex items-center justify-center text-accent-gold text-[9px] font-bold flex-shrink-0">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500/5 to-transparent border border-cyan-500/10">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-[10px] font-bold flex-shrink-0 shadow-lg shadow-cyan-500/20">
                             {(user.pilotId || 'P').charAt(0)}
                         </div>
                         <div className="min-w-0">
-                            <div className="text-[10px] font-bold text-white truncate">{user.customCallsign || user.pilotId || 'Pilot'}</div>
-                            <div className="text-[8px] text-gray-600 font-mono truncate">{user.email || ''}</div>
+                            <div className="text-[10px] font-bold text-cyan-400 truncate">{user.customCallsign || user.pilotId || 'Pilot'}</div>
+                            <div className="text-[8px] text-cyan-500/50 font-mono truncate">{user.email || ''}</div>
                         </div>
                     </div>
                 )}
@@ -275,7 +275,7 @@ export default function Sidebar() {
                 {/* Logout */}
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center px-3 py-2 text-[13px] font-medium text-gray-500 hover:text-rose-400 hover:bg-rose-500/[0.06] rounded-lg transition-all group relative"
+                    className="w-full flex items-center px-3 py-2.5 text-[13px] font-medium text-gray-500 hover:text-rose-400 hover:bg-gradient-to-r hover:from-rose-500/10 hover:to-transparent rounded-xl transition-all group relative border border-transparent hover:border-rose-500/20"
                     title="Sign Out"
                 >
                     <LogOut className="w-[18px] h-[18px] mr-3 flex-shrink-0" />
