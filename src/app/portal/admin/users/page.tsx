@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { Users, Search, UserX, AlertTriangle, X, Clock, Plane, MapPin, CreditCard, ChevronDown, Shield, Mail, Globe, Hash, ArrowUpDown } from 'lucide-react';
+import { Users, Search, UserX, AlertTriangle, X, Clock, Plane, MapPin, CreditCard, ChevronDown, Shield, Mail, Globe, Hash, ArrowUpDown, KeyRound, Trash2 } from 'lucide-react';
 
 interface User {
     id: string;
@@ -58,6 +58,9 @@ export default function AdminUsersPage() {
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortAsc, setSortAsc] = useState(true);
     const [error, setError] = useState('');
+    const [resettingPassword, setResettingPassword] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => { fetchUsers(); }, []);
 
@@ -85,6 +88,47 @@ export default function AdminUsersPage() {
             totalCredits: user.totalCredits, balance: user.balance,
         });
     }, []);
+
+    const resetPassword = async () => {
+        if (!selectedUser) return;
+        setResettingPassword(true);
+        setError('');
+        try {
+            const res = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'resetPassword', userId: selectedUser.id }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to send reset email');
+            alert(`Password reset email sent to ${selectedUser.email}`);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setResettingPassword(false);
+        }
+    };
+
+    const deleteAccount = async () => {
+        if (!selectedUser) return;
+        setDeletingAccount(true);
+        setError('');
+        try {
+            const res = await fetch(`/api/admin/users?userId=${selectedUser.id}`, {
+                method: 'DELETE',
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to delete account');
+            alert(`Account ${selectedUser.pilotId} deleted successfully`);
+            setSelectedUser(null);
+            setShowDeleteConfirm(false);
+            fetchUsers();
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setDeletingAccount(false);
+        }
+    };
 
     const updateUser = async () => {
         if (!selectedUser) return;
@@ -515,10 +559,49 @@ export default function AdminUsersPage() {
                         </div>
 
                         {/* Sticky Footer */}
-                        <div className="sticky bottom-0 bg-[#0c0c0c]/90 backdrop-blur-sm border-t border-white/[0.06] px-6 py-4 flex items-center justify-between">
-                            <span className="text-[10px] text-gray-600 font-mono">
-                                Joined {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : '—'}
-                            </span>
+                        <div className="sticky bottom-0 bg-[#0c0c0c]/90 backdrop-blur-sm border-t border-white/[0.06] px-6 py-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={resetPassword}
+                                        disabled={resettingPassword}
+                                        className="px-3 py-2 rounded-xl text-xs font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                        <KeyRound size={12} />
+                                        {resettingPassword ? 'Sending...' : 'Reset Password'}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        className="px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 transition-all flex items-center gap-1.5"
+                                    >
+                                        <Trash2 size={12} />
+                                        Delete Account
+                                    </button>
+                                </div>
+                                <span className="text-[10px] text-gray-600 font-mono">
+                                    Joined {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : '—'}
+                                </span>
+                            </div>
+                            {showDeleteConfirm && (
+                                <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <p className="text-xs text-red-400 mb-2">⚠️ Are you sure? This action cannot be undone!</p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setShowDeleteConfirm(false)}
+                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.12] transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={deleteAccount}
+                                            disabled={deletingAccount}
+                                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-50"
+                                        >
+                                            {deletingAccount ? 'Deleting...' : 'Yes, Delete'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setSelectedUser(null)}
@@ -529,7 +612,7 @@ export default function AdminUsersPage() {
                                 <button
                                     onClick={updateUser}
                                     disabled={updating}
-                                    className="px-5 py-2 rounded-xl text-xs font-bold bg-accent-gold text-black hover:bg-accent-gold/90 transition-all disabled:opacity-50"
+                                    className="flex-1 px-5 py-2 rounded-xl text-xs font-bold bg-accent-gold text-black hover:bg-accent-gold/90 transition-all disabled:opacity-50"
                                 >
                                     {updating ? 'Saving...' : 'Save Changes'}
                                 </button>

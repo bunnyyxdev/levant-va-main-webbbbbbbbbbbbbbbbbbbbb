@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 const SMTP_CONFIG = {
-    host: process.env.SMTP_HOST || "",
+    host: (process.env.SMTP_HOST || "").replace('ssl://', ''),
     port: parseInt(process.env.SMTP_PORT || "0"),
     secure: true,
     auth: {
@@ -55,12 +55,16 @@ export const sendPasswordResetEmail = async (to: string, token: string) => {
     };
 
     try {
-        const info = await getTransporter().sendMail(mailOptions);
-        console.log('Password reset email sent:', info.messageId);
+        const transporter = getTransporter();
+        console.log('Sending password reset email to:', to);
+        console.log('SMTP Config:', { host: SMTP_CONFIG.host, port: SMTP_CONFIG.port, user: SMTP_CONFIG.auth.user });
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Password reset email sent successfully:', info.messageId);
         return true;
     } catch (error) {
         console.error('Error sending password reset email:', error);
-        return false;
+        console.error('Full error details:', JSON.stringify(error, null, 2));
+        throw error;
     }
 };
 
@@ -289,6 +293,46 @@ export const sendBlacklistNotificationEmail = async (to: string, pilotId: string
         return true;
     } catch (error) {
         console.error('Error sending blacklist notification email:', error);
+        return false;
+    }
+};
+
+// Profile Edited by Admin Notification
+export const sendProfileEditedEmail = async (to: string, pilotId: string, firstName: string, changes: string[]) => {
+    const loginLink = `${BASE_URL}/login`;
+
+    const mailOptions = {
+        from: SMTP_CONFIG.from,
+        to,
+        subject: 'Your Profile Has Been Updated - Levant Virtual Airline',
+        html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #d4af37;">Profile Update Notice</h2>
+                <p>Dear ${firstName},</p>
+                <p>Your Levant Virtual Airline profile (<strong>${pilotId}</strong>) has been updated by an administrator.</p>
+                <div style="background: #f5f5f5; border-left: 4px solid #d4af37; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Changes Made</p>
+                    <ul style="margin: 8px 0 0; padding-left: 20px;">
+                        ${changes.map(change => `<li>${change}</li>`).join('')}
+                    </ul>
+                </div>
+                <p>If you have any questions about these changes, please contact our staff via Discord.</p>
+                <p>
+                    <a href="${loginLink}" style="background-color: #d4af37; color: #1a1a2e; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">View Your Profile</a>
+                </p>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                <p style="color: #d4af37; font-weight: bold;">Blue Skies!</p>
+                <p style="color: #666;">Levant Virtual Airline Team</p>
+            </div>
+        `,
+    };
+
+    try {
+        const info = await getTransporter().sendMail(mailOptions);
+        console.log('Profile edited notification email sent:', info.messageId);
+        return true;
+    } catch (error) {
+        console.error('Error sending profile edited email:', error);
         return false;
     }
 };
