@@ -85,7 +85,6 @@ export default function Sidebar() {
         {
             category: 'OPERATIONS',
             items: [
-                { name: 'Dispatch Center', path: '/portal/dispatch', icon: PlaneTakeoff },
                 { name: 'My Reports', path: '/portal/reports', icon: FileText },
                 { name: 'Manual PIREP', path: '/portal/reports/manual', icon: FileText },
                 { name: 'Tours & Events', path: '/portal/activities', icon: Map },
