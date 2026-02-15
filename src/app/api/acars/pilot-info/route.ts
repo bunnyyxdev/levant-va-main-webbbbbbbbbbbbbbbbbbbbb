@@ -6,6 +6,8 @@ export async function POST(request: NextRequest) {
     try {
         const { pilotId } = await request.json();
         
+        console.log(`[PilotInfo] Fetching info for pilot:`, pilotId);
+        
         if (!pilotId) {
             return NextResponse.json({ error: 'Pilot ID required' }, { status: 400 });
         }
@@ -16,8 +18,11 @@ export async function POST(request: NextRequest) {
             .lean();
 
         if (!pilot) {
+            console.error(`[PilotInfo] Pilot not found: ${pilotId}`);
             return NextResponse.json({ error: 'Pilot not found' }, { status: 404 });
         }
+        
+        console.log(`[PilotInfo] Found pilot ${pilotId} with SimBrief ID:`, pilot.simbrief_id || 'NOT SET');
 
         return NextResponse.json({ 
             simbriefId: pilot.simbrief_id || null,
@@ -25,7 +30,7 @@ export async function POST(request: NextRequest) {
             simMode: pilot.sim_mode || 'fsuipc'
         });
     } catch (error: any) {
-        console.error('Pilot info fetch error:', error);
+        console.error('[PilotInfo] Fetch error:', error);
         return NextResponse.json({ 
             error: 'Failed to fetch pilot info',
             details: error.message 

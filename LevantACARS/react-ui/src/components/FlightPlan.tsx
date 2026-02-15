@@ -4,7 +4,7 @@ import { SimBridge } from '../bridge';
 import { cn } from './ui/utils';
 import { HoverBorderGradient } from './ui/hover-border-gradient';
 import { pushToast } from './ToastOverlay';
-import { fetchSimBrief } from '../api';
+import { fetchActiveBid } from '../api';
 import type { FlightState, TelemetryData, BidData } from '../types';
 
 interface Props {
@@ -464,38 +464,35 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
     console.log('[EmptyState] Fetching SimBrief flight plan for pilot:', pilotId);
     
     try {
-      const result = await fetchSimBrief(pilotId);
-      console.log('[EmptyState] SimBrief result:', JSON.stringify(result));
-      
-      if (result.simbriefId) setSimbriefId(result.simbriefId);
+      const result = await fetchActiveBid(pilotId);
+      console.log('[EmptyState] Bid result:', JSON.stringify(result));
       
       if (result.error) {
-        console.error('[EmptyState] SimBrief error:', result.error);
+        console.error('[EmptyState] Bid error:', result.error);
         pushToast('danger', result.error);
-      } else if (!result.flightPlan) {
-        pushToast('warning', 'No SimBrief flight plan found — create a flight plan on SimBrief first');
+      } else if (!result.bid) {
+        pushToast('warning', 'No active bid found — fetch SimBrief on web portal first');
       } else {
-        // Convert SimBrief flight plan to BidData format
         const bidData: BidData = {
           type: 'bid',
-          callsign: result.flightPlan.callsign,
-          flightNumber: result.flightPlan.flightNumber,
-          departureIcao: result.flightPlan.departureIcao,
-          arrivalIcao: result.flightPlan.arrivalIcao,
-          departureName: result.flightPlan.departureName,
-          arrivalName: result.flightPlan.arrivalName,
-          aircraftType: result.flightPlan.aircraftType,
-          aircraftRegistration: result.flightPlan.aircraftRegistration,
-          route: result.flightPlan.route,
-          pax: result.flightPlan.pax,
-          cargo: result.flightPlan.cargo,
-          createdAt: result.flightPlan.createdAt,
-          expiresAt: result.flightPlan.expiresAt,
+          callsign: result.bid.callsign,
+          flightNumber: result.bid.flightNumber,
+          departureIcao: result.bid.departureIcao,
+          arrivalIcao: result.bid.arrivalIcao,
+          departureName: result.bid.departureName,
+          arrivalName: result.bid.arrivalName,
+          aircraftType: result.bid.aircraftType,
+          aircraftRegistration: result.bid.aircraftRegistration,
+          route: result.bid.route,
+          pax: result.bid.pax,
+          cargo: result.bid.cargo,
+          createdAt: result.bid.createdAt,
+          expiresAt: result.bid.expiresAt,
         };
-        console.log('[EmptyState] Injecting SimBrief flight plan into global state:', bidData.callsign);
+        console.log('[EmptyState] Injecting bid into global state:', bidData.callsign);
         injectBid?.(bidData);
-        addLogEntry?.(`SimBrief Flight Plan Loaded — ${bidData.departureIcao} → ${bidData.arrivalIcao} — Ready for Takeoff`);
-        pushToast('success', `SimBrief loaded: ${result.flightPlan.departureIcao} → ${result.flightPlan.arrivalIcao}`);
+        addLogEntry?.(`Flight Plan Loaded — ${bidData.departureIcao} → ${bidData.arrivalIcao} — Ready for Takeoff`);
+        pushToast('success', `Bid loaded: ${result.bid.departureIcao} → ${result.bid.arrivalIcao}`);
       }
     } catch (error) {
       console.error('[EmptyState] Fetch exception:', error);
@@ -516,7 +513,7 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
         <Briefcase size={18} className="text-slate-600" />
       </div>
       <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">No Flight Plan</h3>
-      <p className="text-[9px] text-slate-600 font-mono tracking-widest mt-1 mb-5">FETCH YOUR SIMBRIEF FLIGHT PLAN TO BEGIN</p>
+      <p className="text-[9px] text-slate-600 font-mono tracking-widest mt-1 mb-5">FETCH BID FROM WEB PORTAL TO BEGIN</p>
       <HoverBorderGradient
         onClick={handleFetchBid}
         disabled={loading || !pilotId}
@@ -532,12 +529,12 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
         ) : (
           <span className="flex items-center gap-2 text-accent-gold">
             <RefreshCw size={13} />
-            Fetch SimBrief
+            Fetch Bid
           </span>
         )}
       </HoverBorderGradient>
       <p className="text-[9px] text-slate-700 font-mono mt-4 tracking-wider">
-        Fetches your latest SimBrief flight plan
+        Fetches your flight plan from web portal
       </p>
       {simbriefId && (
         <div className="mt-3 px-3 py-1.5 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
