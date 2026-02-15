@@ -30,19 +30,13 @@ export default function SettingsPage() {
     const [message, setMessage] = useState<Msg>(null);
     
     const [simbriefId, setSimbriefId] = useState('');
-    const [simbriefLoading, setSimbriefLoading] = useState(false);
-    const [simbriefMessage, setSimbriefMessage] = useState<Msg>(null);
-
     const [hoppieCode, setHoppieCode] = useState('');
     const [simMode, setSimMode] = useState<'fsuipc' | 'xpuipc'>('fsuipc');
     const [weightUnit, setWeightUnit] = useState<'lbs' | 'kgs'>('lbs');
-    const [acarsLoading, setAcarsLoading] = useState(false);
-    const [acarsMessage, setAcarsMessage] = useState<Msg>(null);
-
     const [vatsimId, setVatsimId] = useState('');
     const [ivaoId, setIvaoId] = useState('');
-    const [networkLoading, setNetworkLoading] = useState(false);
-    const [networkMessage, setNetworkMessage] = useState<Msg>(null);
+    const [integrationsLoading, setIntegrationsLoading] = useState(false);
+    const [integrationsMessage, setIntegrationsMessage] = useState<Msg>(null);
 
     useEffect(() => {
         fetch('/api/auth/me')
@@ -83,38 +77,27 @@ export default function SettingsPage() {
         finally { setLoading(false); }
     };
 
-    const handleSimbriefSave = async () => {
-        setSimbriefMessage(null);
-        if (!simbriefId.trim()) { setSimbriefMessage({ type: 'error', text: 'Please enter your SimBrief Pilot ID' }); return; }
-        setSimbriefLoading(true);
+    const handleIntegrationsSave = async () => {
+        setIntegrationsMessage(null);
+        setIntegrationsLoading(true);
         try {
-            const res = await fetch('/api/settings/simbrief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ simbriefId }) });
-            if (res.ok) setSimbriefMessage({ type: 'success', text: 'SimBrief ID saved!' });
-            else { const data = await res.json(); setSimbriefMessage({ type: 'error', text: data.error || 'Failed to save' }); }
-        } catch { setSimbriefMessage({ type: 'error', text: 'An error occurred' }); }
-        finally { setSimbriefLoading(false); }
-    };
+            // Save all integrations in parallel
+            const [simbriefRes, acarsRes, networkRes] = await Promise.all([
+                fetch('/api/settings/simbrief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ simbriefId }) }),
+                fetch('/api/settings/acars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hoppieCode, simMode, weightUnit }) }),
+                fetch('/api/settings/network-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vatsimId, ivaoId }) })
+            ]);
 
-    const handleAcarsSave = async () => {
-        setAcarsMessage(null);
-        setAcarsLoading(true);
-        try {
-            const res = await fetch('/api/settings/acars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hoppieCode, simMode, weightUnit }) });
-            if (res.ok) setAcarsMessage({ type: 'success', text: 'ACARS settings saved! Restart ACARS to apply changes.' });
-            else { const data = await res.json(); setAcarsMessage({ type: 'error', text: data.error || 'Failed to save' }); }
-        } catch { setAcarsMessage({ type: 'error', text: 'An error occurred' }); }
-        finally { setAcarsLoading(false); }
-    };
-
-    const handleNetworkSave = async () => {
-        setNetworkMessage(null);
-        setNetworkLoading(true);
-        try {
-            const res = await fetch('/api/settings/network-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vatsimId, ivaoId }) });
-            if (res.ok) setNetworkMessage({ type: 'success', text: 'Network IDs updated!' });
-            else { const data = await res.json(); setNetworkMessage({ type: 'error', text: data.error || 'Failed to save' }); }
-        } catch { setNetworkMessage({ type: 'error', text: 'An error occurred' }); }
-        finally { setNetworkLoading(false); }
+            if (simbriefRes.ok && acarsRes.ok && networkRes.ok) {
+                setIntegrationsMessage({ type: 'success', text: 'All settings saved successfully! Restart ACARS to apply changes.' });
+            } else {
+                setIntegrationsMessage({ type: 'error', text: 'Some settings failed to save. Please try again.' });
+            }
+        } catch {
+            setIntegrationsMessage({ type: 'error', text: 'An error occurred while saving settings.' });
+        } finally {
+            setIntegrationsLoading(false);
+        }
     };
 
     const inputCls = "w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm font-mono focus:border-accent-gold/50 focus:outline-none transition-colors";
@@ -132,97 +115,93 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            {/* SimBrief Integration */}
+            {/* Integrations - Combined Section */}
             <div className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
-                    <Plane className="w-4 h-4 text-amber-500" />
-                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">SimBrief Integration</h2>
+                    <Wifi className="w-4 h-4 text-amber-500" />
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">SimBrief / ACARS / Network</h2>
                 </div>
-                <div className="p-6 space-y-4">
-                    <AnimatePresence><Toast msg={simbriefMessage} onClear={() => setSimbriefMessage(null)} /></AnimatePresence>
-                    <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Pilot ID</label>
-                        <input type="text" value={simbriefId} onChange={e => setSimbriefId(e.target.value)} placeholder="Your SimBrief Pilot ID" className={inputCls} />
-                        <p className="text-[10px] text-gray-600 mt-1.5">simbrief.com → Account Settings → Pilot ID</p>
-                    </div>
-                    <button onClick={handleSimbriefSave} disabled={simbriefLoading}
-                        className="flex items-center gap-2 bg-accent-gold hover:bg-accent-gold/80 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
-                    >
-                        {simbriefLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {simbriefLoading ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
-            </div>
-
-            {/* ACARS Configuration */}
-            <div className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
-                    <Radio className="w-4 h-4 text-emerald-400" />
-                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">ACARS Configuration</h2>
-                </div>
-                <div className="p-6 space-y-4">
-                    <AnimatePresence><Toast msg={acarsMessage} onClear={() => setAcarsMessage(null)} /></AnimatePresence>
-                    <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Hoppie Logon Code</label>
-                        <input type="password" value={hoppieCode} onChange={e => setHoppieCode(e.target.value)} placeholder="Enter Hoppie Code" className={inputCls} />
-                        <p className="text-[10px] text-gray-600 mt-1.5">Required for CPDLC / ACARS messaging via Hoppie network</p>
-                    </div>
-                    <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Weight Unit</label>
-                        <div className="flex gap-2">
-                            <button type="button" onClick={() => setWeightUnit('lbs')}
-                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${weightUnit === 'lbs' ? 'bg-accent-gold/20 border-accent-gold/40 text-accent-gold' : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/20'}`}
-                            >LBS</button>
-                            <button type="button" onClick={() => setWeightUnit('kgs')}
-                                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${weightUnit === 'kgs' ? 'bg-accent-gold/20 border-accent-gold/40 text-accent-gold' : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/20'}`}
-                            >KGS</button>
-                        </div>
-                        <p className="text-[10px] text-gray-600 mt-1.5">Used across the portal for fuel, cargo, and payload values</p>
-                    </div>
-                    <div>
-                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Simulator Mode</label>
-                        <select value={simMode} onChange={e => setSimMode(e.target.value as any)}
-                            className={`${inputCls} appearance-none cursor-pointer`}
-                        >
-                            <option value="fsuipc">FSUIPC (MSFS / P3D)</option>
-                            <option value="xpuipc">XPUIPC (X-Plane Legacy)</option>
-                        </select>
-                        <p className="text-[10px] text-gray-600 mt-1.5">
-                            {simMode === 'fsuipc' ? 'Microsoft Flight Simulator 2020/2024 or Prepar3D via FSUIPC' : 'X-Plane 11/12 via XPUIPC shared memory or TCP'}
-                        </p>
-                    </div>
-                    <button onClick={handleAcarsSave} disabled={acarsLoading}
-                        className="flex items-center gap-2 bg-accent-gold hover:bg-accent-gold/80 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
-                    >
-                        {acarsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {acarsLoading ? 'Saving...' : 'Save ACARS Settings'}
-                    </button>
-                </div>
-            </div>
-
-            {/* Network Integration */}
-            <div className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
-                    <Globe className="w-4 h-4 text-blue-400" />
-                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">Network Integration</h2>
-                </div>
-                <div className="p-6 space-y-4">
-                    <AnimatePresence><Toast msg={networkMessage} onClear={() => setNetworkMessage(null)} /></AnimatePresence>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">VATSIM CID</label>
-                            <input type="text" value={vatsimId} onChange={e => setVatsimId(e.target.value)} placeholder="1234567" className={inputCls} />
+                <div className="p-6 space-y-6">
+                    <AnimatePresence><Toast msg={integrationsMessage} onClear={() => setIntegrationsMessage(null)} /></AnimatePresence>
+                    
+                    {/* SimBrief */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Plane className="w-4 h-4 text-amber-500" />
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">SimBrief</h3>
                         </div>
                         <div>
-                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">IVAO VID</label>
-                            <input type="text" value={ivaoId} onChange={e => setIvaoId(e.target.value)} placeholder="123456" className={inputCls} />
+                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Pilot ID</label>
+                            <input type="text" value={simbriefId} onChange={e => setSimbriefId(e.target.value)} placeholder="" className={inputCls} />
+                            <p className="text-[10px] text-gray-600 mt-1.5">simbrief.com → Account Settings → Pilot ID</p>
                         </div>
                     </div>
-                    <button onClick={handleNetworkSave} disabled={networkLoading}
-                        className="flex items-center gap-2 bg-accent-gold hover:bg-accent-gold/80 text-dark-900 font-bold px-5 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+
+                    <div className="border-t border-white/[0.06] pt-6" />
+
+                    {/* ACARS */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Radio className="w-4 h-4 text-emerald-400" />
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">ACARS</h3>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Hoppie Logon Code</label>
+                            <input type="password" value={hoppieCode} onChange={e => setHoppieCode(e.target.value)} placeholder="" className={inputCls} />
+                            <p className="text-[10px] text-gray-600 mt-1.5">Required for CPDLC / ACARS messaging via Hoppie network</p>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Weight Unit</label>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={() => setWeightUnit('lbs')}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${weightUnit === 'lbs' ? 'bg-accent-gold/20 border-accent-gold/40 text-accent-gold' : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/20'}`}
+                                >LBS</button>
+                                <button type="button" onClick={() => setWeightUnit('kgs')}
+                                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${weightUnit === 'kgs' ? 'bg-accent-gold/20 border-accent-gold/40 text-accent-gold' : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/20'}`}
+                                >KGS</button>
+                            </div>
+                            <p className="text-[10px] text-gray-600 mt-1.5">Used across the portal for fuel, cargo, and payload values</p>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Simulator Mode</label>
+                            <select value={simMode} onChange={e => setSimMode(e.target.value as any)}
+                                className={`${inputCls} appearance-none cursor-pointer`}
+                            >
+                                <option value="fsuipc">FSUIPC (MSFS / P3D)</option>
+                                <option value="xpuipc">XPUIPC (X-Plane Legacy)</option>
+                            </select>
+                            <p className="text-[10px] text-gray-600 mt-1.5">
+                                {simMode === 'fsuipc' ? 'Microsoft Flight Simulator 2020/2024 or Prepar3D via FSUIPC' : 'X-Plane 11/12 via XPUIPC shared memory or TCP'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-white/[0.06] pt-6" />
+
+                    {/* Network */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Globe className="w-4 h-4 text-blue-400" />
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Network</h3>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">VATSIM CID</label>
+                                <input type="text" value={vatsimId} onChange={e => setVatsimId(e.target.value)} placeholder="" className={inputCls} />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">IVAO VID</label>
+                                <input type="text" value={ivaoId} onChange={e => setIvaoId(e.target.value)} placeholder="" className={inputCls} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Single Save Button */}
+                    <button onClick={handleIntegrationsSave} disabled={integrationsLoading}
+                        className="w-full flex items-center justify-center gap-2 bg-accent-gold hover:bg-accent-gold/80 text-dark-900 font-bold px-5 py-3 rounded-xl text-sm transition-colors disabled:opacity-50 mt-6"
                     >
-                        {networkLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {networkLoading ? 'Saving...' : 'Save Network IDs'}
+                        {integrationsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {integrationsLoading ? 'Saving All Settings...' : 'Save All Settings'}
                     </button>
                 </div>
             </div>
