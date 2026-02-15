@@ -453,13 +453,24 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
 
   const handleFetchBid = useCallback(async () => {
     if (!pilotId || loading) return;
+    
+    // Prevent multiple rapid clicks
+    if (cooldownRef.current) {
+      console.log('[EmptyState] Fetch already in progress, ignoring');
+      return;
+    }
+    
     setLoading(true);
     console.log('[EmptyState] Fetching SimBrief flight plan for pilot:', pilotId);
+    
     try {
       const result = await fetchSimBrief(pilotId);
       console.log('[EmptyState] SimBrief result:', JSON.stringify(result));
+      
       if (result.simbriefId) setSimbriefId(result.simbriefId);
+      
       if (result.error) {
+        console.error('[EmptyState] SimBrief error:', result.error);
         pushToast('danger', result.error);
       } else if (!result.flightPlan) {
         pushToast('warning', 'No SimBrief flight plan found — create a flight plan on SimBrief first');
@@ -486,11 +497,17 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
         addLogEntry?.(`SimBrief Flight Plan Loaded — ${bidData.departureIcao} → ${bidData.arrivalIcao} — Ready for Takeoff`);
         pushToast('success', `SimBrief loaded: ${result.flightPlan.departureIcao} → ${result.flightPlan.arrivalIcao}`);
       }
-    } catch {
-      pushToast('danger', 'Failed to reach the server');
+    } catch (error) {
+      console.error('[EmptyState] Fetch exception:', error);
+      pushToast('danger', 'Network error - check your connection');
+    } finally {
+      // Set cooldown to prevent rapid retries
+      if (cooldownRef.current) window.clearTimeout(cooldownRef.current);
+      cooldownRef.current = window.setTimeout(() => {
+        setLoading(false);
+        cooldownRef.current = null;
+      }, 2000); // 2 second cooldown
     }
-    if (cooldownRef.current) window.clearTimeout(cooldownRef.current);
-    cooldownRef.current = window.setTimeout(() => setLoading(false), 1200);
   }, [pilotId, loading, injectBid, addLogEntry]);
 
   return (
