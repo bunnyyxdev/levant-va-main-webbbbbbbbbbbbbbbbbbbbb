@@ -138,7 +138,7 @@ public sealed class LevantApiClient
             response.EnsureSuccessStatusCode();
             _restApiConnected = true;
             _lastRestSuccess = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            _logger.LogInformation("[API] PIREP submitted successfully for {Flight}", pirep.FlightNumber);
+            _logger.LogInformation("[API] PIREP submitted: {Flight}, Landing: {Rate}fpm", pirep.FlightNumber, pirep.LandingRate);
             return true;
         }
         catch (Exception ex)
@@ -183,8 +183,6 @@ public sealed class LevantApiClient
                 aircraftType,
             };
 
-            _logger.LogInformation("[API] Sending flight-start: pilot={Pilot} cs={Cs} dep={Dep} arr={Arr} url={Url}",
-                pilotId, callsign, departureIcao, arrivalIcao, _http.BaseAddress);
             var response = await _http.PostAsJsonAsync("", payload, JsonOpts);
             if (!response.IsSuccessStatusCode)
             {
@@ -194,7 +192,7 @@ public sealed class LevantApiClient
             response.EnsureSuccessStatusCode();
             _restApiConnected = true;
             _lastRestSuccess = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            _logger.LogInformation("[API] Flight start confirmed by server");
+            _logger.LogInformation("[API] Flight started: {Cs} ({Dep}→{Arr})", callsign, departureIcao, arrivalIcao);
             return true;
         }
         catch (Exception ex)
@@ -240,13 +238,10 @@ public sealed class LevantApiClient
     {
         try
         {
-            _logger.LogInformation("[API] FetchBid request: pilotId={PilotId}, url={Url}", pilotId, _http.BaseAddress);
             var payload = new { action = "bid", pilotId };
             var response = await _http.PostAsJsonAsync("", payload, JsonOpts);
 
             var json = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("[API] FetchBid response: status={Status}, body={Body}",
-                (int)response.StatusCode, json.Length > 500 ? json[..500] : json);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -261,7 +256,6 @@ public sealed class LevantApiClient
             if (root.TryGetProperty("bid", out var bid) && bid.ValueKind == JsonValueKind.Object)
             {
                 // Return a clone since the doc will be disposed
-                _logger.LogInformation("[API] FetchBid found bid for pilot {Pilot}", pilotId);
                 return JsonSerializer.Deserialize<JsonElement>(bid.GetRawText());
             }
 

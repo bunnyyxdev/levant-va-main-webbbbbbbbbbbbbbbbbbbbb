@@ -239,15 +239,11 @@ public sealed class FlightManager : IDisposable
                     _arrivalLat = arrCoords.Value.Lat;
                     _arrivalLon = arrCoords.Value.Lon;
                     _plannedDistanceNm = HaversineNm(depCoords.Value.Lat, depCoords.Value.Lon, _arrivalLat, _arrivalLon);
-                    _logger.LogInformation("[FlightManager] Planned distance: {Dist:F1} nm ({Dep}→{Arr})",
-                        _plannedDistanceNm, p.DepartureIcao, p.ArrivalIcao);
                 }
             });
 
-        // Notify API (fire-and-forget with error logging)
-        _ = _api.NotifyFlightStartAsync(p.PilotId, p.FlightNumber, p.Callsign, p.DepartureIcao, p.ArrivalIcao, p.AircraftType)
-            .ContinueWith(t => _logger.LogError(t.Exception, "[FlightManager] API flight-start failed"),
-                TaskContinuationOptions.OnlyOnFaulted);
+        // Notify API (fire-and-forget)
+        _ = _api.NotifyFlightStartAsync(p.PilotId, p.FlightNumber, p.Callsign, p.DepartureIcao, p.ArrivalIcao, p.AircraftType);
 
         // Discord webhook notification
         _ = _webhook.NotifyFlightStartAsync(p.PilotId, p.FlightNumber, p.DepartureIcao, p.ArrivalIcao, p.AircraftType);
@@ -259,7 +255,8 @@ public sealed class FlightManager : IDisposable
         // Start heartbeat
         StartHeartbeat();
 
-        _logger.LogInformation("[FlightManager] Flight started: {Flight} ({Dep}→{Arr})", p.FlightNumber, p.DepartureIcao, p.ArrivalIcao);
+        _logger.LogInformation("[FlightManager] Flight started: {Flight} ({Dep}→{Arr}), Distance: {Dist:F1}nm", 
+            p.FlightNumber, p.DepartureIcao, p.ArrivalIcao, _plannedDistanceNm);
         OnFlightEvent?.Invoke($"Flight {p.FlightNumber} started: {p.DepartureIcao} → {p.ArrivalIcao}");
 
         return true;
@@ -538,12 +535,8 @@ public sealed class FlightManager : IDisposable
             Comments = null,
         };
 
-        _ = _api.SubmitPirepAsync(pirep)
-            .ContinueWith(t => _logger.LogError(t.Exception, "[FlightManager] API PIREP submit failed"),
-                TaskContinuationOptions.OnlyOnFaulted);
-        _ = _api.NotifyFlightEndAsync(_pilotId ?? "", score.Rejected ? "rejected" : "completed")
-            .ContinueWith(t => _logger.LogError(t.Exception, "[FlightManager] API flight-end failed"),
-                TaskContinuationOptions.OnlyOnFaulted);
+        _ = _api.SubmitPirepAsync(pirep);
+        _ = _api.NotifyFlightEndAsync(_pilotId ?? "", score.Rejected ? "rejected" : "completed");
 
         // Discord webhook — flight completed or rejected
         if (score.Rejected)

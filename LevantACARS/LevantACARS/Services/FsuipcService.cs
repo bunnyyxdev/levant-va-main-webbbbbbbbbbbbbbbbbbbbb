@@ -118,8 +118,6 @@ public sealed class FsuipcService : IDisposable
         _acarsFuel       = new Offset<float>(0x66C0);
         _acarsZfw        = new Offset<float>(0x66C4);
         _acarsPayload    = new Offset<float>(0x66C8);
-
-        _logger.LogInformation("[FSUIPC] Offsets registered");
     }
 
     /// <summary>Start the 200ms polling loop.</summary>
@@ -134,7 +132,6 @@ public sealed class FsuipcService : IDisposable
         _pollTimer.Elapsed += OnPollTick;
         _pollTimer.AutoReset = true;
         _pollTimer.Start();
-        _logger.LogInformation("[FSUIPC] Polling started ({Interval}ms interval)", interval);
     }
 
     /// <summary>Stop polling and disconnect.</summary>
@@ -150,8 +147,6 @@ public sealed class FsuipcService : IDisposable
             _isConnected = false;
             OnConnectionChanged?.Invoke(false);
         }
-
-        _logger.LogInformation("[FSUIPC] Polling stopped");
     }
 
     private void OnPollTick(object? sender, ElapsedEventArgs e)
