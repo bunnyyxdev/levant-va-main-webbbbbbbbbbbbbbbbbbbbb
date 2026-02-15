@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
         const simbriefId = pilot.simbrief_id;
         if (!simbriefId) {
             return NextResponse.json({ 
-                error: 'SimBrief ID not configured. Please add your SimBrief ID in Settings.' 
+                error: 'SimBrief ID not configured. Please add your SimBrief ID in Settings.',
+                simbriefId: null
             }, { status: 400 });
         }
 
@@ -33,7 +34,8 @@ export async function POST(request: NextRequest) {
 
         if (!sbRes.ok) {
             return NextResponse.json({ 
-                error: 'Failed to fetch SimBrief flight plan' 
+                error: `Failed to fetch SimBrief flight plan (SimBrief ID: ${simbriefId})`,
+                simbriefId
             }, { status: 500 });
         }
 
@@ -41,7 +43,8 @@ export async function POST(request: NextRequest) {
 
         if (sbData?.fetch?.status !== 'Success') {
             return NextResponse.json({ 
-                error: 'No SimBrief flight plan found. Please create a flight plan on SimBrief first.' 
+                error: `No SimBrief flight plan found for SimBrief ID: ${simbriefId}. Please create a flight plan on SimBrief first.`,
+                simbriefId
             }, { status: 404 });
         }
 
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
         };
 
-        return NextResponse.json({ flightPlan });
+        return NextResponse.json({ flightPlan, simbriefId });
     } catch (error: any) {
         console.error('SimBrief fetch error:', error);
         return NextResponse.json({ 

@@ -186,7 +186,7 @@ if (window.chrome?.webview) {
   });
 }
 
-export async function fetchSimBrief(pilotId: string): Promise<{ flightPlan: SimBriefFlightPlan | null; error?: string }> {
+export async function fetchSimBrief(pilotId: string): Promise<{ flightPlan: SimBriefFlightPlan | null; error?: string; simbriefId?: string | null }> {
   const controller = new AbortController();
   const timeoutMs = 10000;
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -204,15 +204,15 @@ export async function fetchSimBrief(pilotId: string): Promise<{ flightPlan: SimB
     if (!res.ok) {
       const err = await res.json().catch(() => ({} as any));
       const msg = err?.error || `Server error (${res.status})`;
-      return { flightPlan: null, error: msg };
+      return { flightPlan: null, error: msg, simbriefId: err?.simbriefId };
     }
     
     const data = await res.json();
     if (!data.flightPlan) {
-      return { flightPlan: null, error: 'No flight plan found' };
+      return { flightPlan: null, error: 'No flight plan found', simbriefId: data.simbriefId };
     }
     
-    return { flightPlan: data.flightPlan };
+    return { flightPlan: data.flightPlan, simbriefId: data.simbriefId };
   } catch (error: any) {
     clearTimeout(timeout);
     if (error.name === 'AbortError') {

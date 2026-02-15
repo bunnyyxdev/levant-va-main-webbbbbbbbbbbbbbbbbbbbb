@@ -425,6 +425,7 @@ function MetricCell({ icon, label, value, color }: { icon?: React.ReactNode; lab
 
 function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; injectBid?: (b: BidData | null) => void; addLogEntry?: (message: string) => void }) {
   const [loading, setLoading] = useState(false);
+  const [simbriefId, setSimbriefId] = useState<string | null>(null);
   const cooldownRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -440,8 +441,9 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
     try {
       const result = await fetchSimBrief(pilotId);
       console.log('[EmptyState] SimBrief result:', JSON.stringify(result));
+      if (result.simbriefId) setSimbriefId(result.simbriefId);
       if (result.error) {
-        pushToast('danger', `Fetch failed: ${result.error}`);
+        pushToast('danger', result.error);
       } else if (!result.flightPlan) {
         pushToast('warning', 'No SimBrief flight plan found — create a flight plan on SimBrief first');
       } else {
