@@ -4,13 +4,22 @@ const AIRPORTS = ['OJAI', 'OSDI', 'ORBI'];
 
 export async function GET() {
     try {
-        // IVAO provides public METAR data without API key
+        const clientId = process.env.NEXT_PUBLIC_IVAO_CLIENT_ID;
+        const clientSecret = process.env.NEXT_PUBLIC_IVAO_CLIENT_SECRET;
+        
         const metarPromises = AIRPORTS.map(async (icao) => {
             try {
+                const headers: HeadersInit = {
+                    'Accept': 'application/json',
+                };
+                
+                // Add authentication if credentials are available
+                if (clientId && clientSecret) {
+                    headers['Authorization'] = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`;
+                }
+                
                 const response = await fetch(`https://api.ivao.aero/v2/airports/${icao}/metar`, {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
+                    headers,
                     next: { revalidate: 300 } // Cache for 5 minutes
                 });
                 
