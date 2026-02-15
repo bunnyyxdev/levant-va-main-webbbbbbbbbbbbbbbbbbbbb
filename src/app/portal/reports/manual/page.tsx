@@ -173,11 +173,12 @@ export default function ManualPirepPage() {
                                 Tracker Link
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setProofMode('image')}
                                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${proofMode === 'image' ? 'bg-accent-gold text-dark-900' : 'bg-white/5 text-gray-400 hover:text-white'}`}
                             >
                                 <Upload size={12} className="inline mr-1.5" />
-                                Screenshot URL
+                                Upload Images
                             </button>
                         </div>
 
@@ -209,7 +210,7 @@ export default function ManualPirepPage() {
                                     <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                                         <ImageIcon size={16} className="text-emerald-400 flex-shrink-0" />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-emerald-400 font-bold truncate">{uploadedFileName || 'Screenshot uploaded'}</p>
+                                            <p className="text-sm text-emerald-400 font-bold truncate">{uploadedFileName || 'Image uploaded'}</p>
                                             <p className="text-[10px] text-gray-500 font-mono truncate">{form.proof_image}</p>
                                         </div>
                                         <button
@@ -230,7 +231,7 @@ export default function ManualPirepPage() {
                                         {uploading ? (
                                             <><Loader2 size={20} className="text-accent-gold animate-spin" /><span className="text-sm text-gray-400">Uploading...</span></>
                                         ) : (
-                                            <><Upload size={20} className="text-gray-500" /><span className="text-sm text-gray-400">Click to upload screenshot</span><span className="text-[10px] text-gray-600">PNG, JPG, WEBP — max 5 MB</span></>
+                                            <><Upload size={20} className="text-gray-500" /><span className="text-sm text-gray-400">Click to upload images</span><span className="text-[10px] text-gray-600">PNG, JPG, WEBP — max 5 MB</span></>
                                         )}
                                     </button>
                                 )}
