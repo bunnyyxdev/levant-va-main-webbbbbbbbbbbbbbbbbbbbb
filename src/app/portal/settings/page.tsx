@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Lock, Eye, EyeOff, Check, AlertCircle, Plane, Globe, Radio, Loader2, Save, CheckCircle, Wifi } from 'lucide-react';
+import { Settings, Lock, Eye, EyeOff, Check, AlertCircle, Plane, Globe, Radio, Loader2, Save, CheckCircle, Wifi, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Msg = { type: 'success' | 'error'; text: string } | null;
@@ -36,10 +36,28 @@ export default function SettingsPage() {
     const [vatsimId, setVatsimId] = useState('');
     const [ivaoId, setIvaoId] = useState('');
     const [country, setCountry] = useState('');
+    const [countries, setCountries] = useState<Array<{code: string; name: string; flag: string}>>([]);
+    const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
     const [integrationsLoading, setIntegrationsLoading] = useState(false);
     const [integrationsMessage, setIntegrationsMessage] = useState<Msg>(null);
 
     useEffect(() => {
+        // Fetch countries
+        fetch('https://restcountries.com/v3.1/all?fields=name,cca2,flags')
+            .then(res => res.json())
+            .then(data => {
+                const formattedCountries = data
+                    .map((c: any) => ({
+                        code: c.cca2,
+                        name: c.name.common,
+                        flag: c.flags.svg || c.flags.png
+                    }))
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
+                setCountries(formattedCountries);
+            })
+            .catch(() => {});
+
+        // Fetch user data
         fetch('/api/auth/me')
             .then(res => res.json())
             .then(data => {
@@ -187,10 +205,45 @@ export default function SettingsPage() {
                             <Globe className="w-4 h-4 text-blue-400" />
                             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Network & Origin</h3>
                         </div>
-                        <div>
+                        <div className="relative">
                             <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Country (Origin)</label>
-                            <input type="text" value={country} onChange={e => setCountry(e.target.value)} placeholder="e.g., US, GB, FR" className={inputCls} />
-                            <p className="text-[10px] text-gray-600 mt-1.5">2-letter country code (ISO 3166-1 alpha-2)</p>
+                            <button
+                                type="button"
+                                onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                                className="w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm font-mono focus:border-accent-gold/50 focus:outline-none transition-colors flex items-center justify-between"
+                            >
+                                {country ? (
+                                    <span className="flex items-center gap-2">
+                                        <img src={countries.find(c => c.code === country)?.flag} alt="" className="w-5 h-4 object-cover rounded" />
+                                        {countries.find(c => c.code === country)?.name || country}
+                                    </span>
+                                ) : (
+                                    <span className="text-gray-500">Select a country</span>
+                                )}
+                                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${countryDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {countryDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/[0.08] rounded-xl shadow-2xl max-h-64 overflow-hidden">
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {countries.map(c => (
+                                            <button
+                                                key={c.code}
+                                                type="button"
+                                                onClick={() => {
+                                                    setCountry(c.code);
+                                                    setCountryDropdownOpen(false);
+                                                }}
+                                                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 text-white text-sm text-left transition-colors"
+                                            >
+                                                <img src={c.flag} alt="" className="w-6 h-4 object-cover rounded" />
+                                                <span>{c.name}</span>
+                                                <span className="text-gray-600 text-xs ml-auto">{c.code}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
