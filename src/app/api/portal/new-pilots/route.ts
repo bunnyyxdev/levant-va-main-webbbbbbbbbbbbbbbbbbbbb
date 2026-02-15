@@ -13,9 +13,11 @@ const getNewestPilots = unstable_cache(
             .lean();
         
         return pilots.map(pilot => ({
-            id: pilot.pilot_id,
-            name: `${pilot.first_name} ${pilot.last_name}`,
-            joined: new Date(pilot.created_at).toLocaleDateString(),
+            _id: pilot._id,
+            pilot_id: pilot.pilot_id,
+            first_name: pilot.first_name,
+            last_name: pilot.last_name,
+            created_at: pilot.created_at,
             rank: pilot.rank,
         }));
     },
