@@ -112,13 +112,6 @@ export default function Sidebar() {
 
     const adminSubGroups = useMemo<AdminSubGroup[]>(() => [
         {
-            label: 'Fleet',
-            items: [
-                { name: 'Fleet Management', path: '/portal/admin/fleet', icon: Plane },
-                { name: 'Fleet Maintenance', path: '/portal/admin/fleet/maintenance', icon: Wrench },
-            ],
-        },
-        {
             label: 'Content',
             items: [
                 { name: 'Tour Management', path: '/portal/admin/tours', icon: Map },
@@ -277,7 +270,7 @@ export default function Sidebar() {
             <div className="border-t border-white/[0.04] p-2 space-y-1">
                 {/* Airline Vault Widget */}
                 {isAdmin && vaultBalance !== null && (
-                    <Link href="/portal/admin/fleet/maintenance" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-gold/[0.05] border border-accent-gold/10 hover:border-accent-gold/20 transition-all group">
+                    <Link href="/portal/admin/settings" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-gold/[0.05] border border-accent-gold/10 hover:border-accent-gold/20 transition-all group">
                         <Landmark size={16} className="text-accent-gold flex-shrink-0" />
                         <div className="min-w-0">
                             <div className="text-[8px] font-bold text-gray-600 uppercase tracking-wider">Airline Vault</div>
