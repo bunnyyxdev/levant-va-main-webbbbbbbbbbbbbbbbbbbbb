@@ -14,8 +14,6 @@ const DashboardMap = dynamic<any>(() => import('@/components/DashboardMap'), {
     ssr: false 
 });
 
-const LandingLeaderboard = dynamic(() => import('@/components/LandingLeaderboard'), { ssr: false });
-
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -602,11 +600,6 @@ export default function DashboardPage() {
                             </div>
                         </motion.div>
                     )}
-
-                    {/* Leaderboard */}
-                    <motion.div variants={itemVariants}>
-                        <LandingLeaderboard />
-                    </motion.div>
 
                     {/* Newest Pilots */}
                     <motion.div variants={itemVariants} className="bg-[#111] rounded-2xl border border-white/[0.06] overflow-hidden">
