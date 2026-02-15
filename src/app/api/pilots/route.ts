@@ -64,6 +64,8 @@ export async function GET(request: NextRequest) {
                         country: pilot.country,
                         city: pilot.city,
                         timezone: pilot.timezone,
+                        vatsim_cid: pilot.vatsim_cid || '',
+                        ivao_vid: pilot.ivao_vid || '',
                         desired_callsign: pilot.desired_callsign,
                         created_at: pilot.created_at,
                         balance: pilot.balance || 0,

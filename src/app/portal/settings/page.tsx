@@ -35,6 +35,7 @@ export default function SettingsPage() {
     const [weightUnit, setWeightUnit] = useState<'lbs' | 'kgs'>('lbs');
     const [vatsimId, setVatsimId] = useState('');
     const [ivaoId, setIvaoId] = useState('');
+    const [country, setCountry] = useState('');
     const [integrationsLoading, setIntegrationsLoading] = useState(false);
     const [integrationsMessage, setIntegrationsMessage] = useState<Msg>(null);
 
@@ -49,6 +50,7 @@ export default function SettingsPage() {
                     if (data.user.weightUnit) setWeightUnit(data.user.weightUnit);
                     if (data.user.vatsim_cid) setVatsimId(data.user.vatsim_cid);
                     if (data.user.ivao_vid) setIvaoId(data.user.ivao_vid);
+                    if (data.user.country) setCountry(data.user.country);
                 }
             })
             .catch(() => {});
@@ -82,13 +84,14 @@ export default function SettingsPage() {
         setIntegrationsLoading(true);
         try {
             // Save all integrations in parallel
-            const [simbriefRes, acarsRes, networkRes] = await Promise.all([
+            const [simbriefRes, acarsRes, networkRes, countryRes] = await Promise.all([
                 fetch('/api/settings/simbrief', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ simbriefId }) }),
                 fetch('/api/settings/acars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hoppieCode, simMode, weightUnit }) }),
-                fetch('/api/settings/network-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vatsimId, ivaoId }) })
+                fetch('/api/settings/network-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vatsimId, ivaoId }) }),
+                fetch('/api/settings/country', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country }) })
             ]);
 
-            if (simbriefRes.ok && acarsRes.ok && networkRes.ok) {
+            if (simbriefRes.ok && acarsRes.ok && networkRes.ok && countryRes.ok) {
                 setIntegrationsMessage({ type: 'success', text: 'All settings saved successfully! Restart ACARS to apply changes.' });
             } else {
                 setIntegrationsMessage({ type: 'error', text: 'Some settings failed to save. Please try again.' });
@@ -182,7 +185,12 @@ export default function SettingsPage() {
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-3">
                             <Globe className="w-4 h-4 text-blue-400" />
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Network</h3>
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Network & Origin</h3>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1.5">Country (Origin)</label>
+                            <input type="text" value={country} onChange={e => setCountry(e.target.value)} placeholder="e.g., US, GB, FR" className={inputCls} />
+                            <p className="text-[10px] text-gray-600 mt-1.5">2-letter country code (ISO 3166-1 alpha-2)</p>
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
