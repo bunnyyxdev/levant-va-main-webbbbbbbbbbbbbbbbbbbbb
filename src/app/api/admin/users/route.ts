@@ -6,6 +6,7 @@ import { sendAccountActivatedEmail, sendAccountInactiveEmail, sendProfileEditedE
 import { checkAndUpgradeRank } from '@/lib/ranks';
 import { v4 as uuidv4 } from 'uuid';
 import PasswordReset from '@/models/PasswordReset';
+import bcrypt from 'bcryptjs';
 
 // GET - List all users with roles and status
 export async function GET() {
