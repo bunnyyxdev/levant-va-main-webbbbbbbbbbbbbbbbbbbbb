@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
 import connectDB from '@/lib/database';
 import Pilot from '@/models/Pilot';
-import PasswordReset from '@/models/PasswordReset';
-import { sendPasswordResetEmail } from '@/lib/email';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
     try {
@@ -25,30 +23,22 @@ export async function POST(request: NextRequest) {
         if (!user) {
             return NextResponse.json({ 
                 success: true,
-                message: 'If an account exists with this email, you will receive a password reset link.' 
+                message: 'If an account exists with this email, your password has been reset to: pleasechangeyourpassword' 
             });
         }
 
-        // Generate reset token
-        const token = uuidv4();
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        // Set temporary default password (same as admin reset)
+        const defaultPassword = 'pleasechangeyourpassword';
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-        // Delete any existing tokens for this email
-        await PasswordReset.deleteMany({ email: email.toLowerCase() });
-
-        // Create new reset token
-        await PasswordReset.create({
-            email: email.toLowerCase(),
-            token,
-            expires_at: expiresAt,
-        });
-
-        // Send email (mock for now)
-        await sendPasswordResetEmail(email, token);
+        // Update user password
+        user.password = hashedPassword;
+        await user.save();
 
         return NextResponse.json({ 
             success: true,
-            message: 'If an account exists with this email, you will receive a password reset link.' 
+            message: 'Password has been reset to: pleasechangeyourpassword',
+            defaultPassword
         });
 
     } catch (error) {
