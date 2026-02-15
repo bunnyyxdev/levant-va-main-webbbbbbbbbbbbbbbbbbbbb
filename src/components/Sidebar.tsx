@@ -87,7 +87,6 @@ export default function Sidebar() {
             category: 'OPERATIONS',
             items: [
                 { name: 'My Reports', path: '/portal/reports', icon: FileText },
-                { name: 'Manual PIREP', path: '/portal/reports/manual', icon: Edit },
                 { name: 'Tours & Events', path: '/portal/activities', icon: Map },
                 { name: 'Leaderboard', path: '/portal/leaderboard', icon: Trophy },
                 { name: 'Downloads', path: '/portal/downloads', icon: Download },
