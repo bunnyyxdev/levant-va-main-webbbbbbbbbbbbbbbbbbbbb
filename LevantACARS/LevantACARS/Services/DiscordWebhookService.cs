@@ -26,13 +26,9 @@ public sealed class DiscordWebhookService
     /// <summary>Initialize with the webhook URL from environment.</summary>
     public void Initialize()
     {
-        _webhookUrl = AppConfig.Current.DiscordWebhookUrl;
-        if (string.IsNullOrEmpty(_webhookUrl))
-        {
-            _logger.LogWarning("[Webhook] DISCORD_WEBHOOK_URL not set — webhook notifications disabled");
-            return;
-        }
-        _logger.LogInformation("[Webhook] Discord webhook initialized");
+        // Discord webhooks disabled - web application handles all notifications
+        _webhookUrl = null;
+        _logger.LogInformation("[Webhook] Discord webhook disabled — web handles all notifications");
     }
 
     /// <summary>Notify that a flight has started.</summary>

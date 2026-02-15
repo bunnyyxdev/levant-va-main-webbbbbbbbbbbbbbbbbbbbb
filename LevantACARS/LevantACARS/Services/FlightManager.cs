@@ -532,7 +532,7 @@ public sealed class FlightManager : IDisposable
             Status = score.Rejected ? "rejected" : "completed",
             ExceedanceCount = exceedances.Length,
             AlternateIcao = null,
-            Telemetry = _telemetryBuffer.OrderBy(t => t.Timestamp).ToArray(),
+            Telemetry = _telemetryBuffer.OrderBy(t => t.Time).ToArray(),
             Log = flightLog,
             AirframeDamage = null,
             Comments = null,
