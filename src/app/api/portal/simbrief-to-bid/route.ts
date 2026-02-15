@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Delete any existing bids for this pilot
-        await BidModel.deleteMany({ pilot_id: pilot._id });
+        await Bid.deleteMany({ pilot_id: pilot._id });
 
         // Create bid from SimBrief data
-        const bid = await BidModel.create({
+        const bid = await Bid.create({
             pilot_id: pilot._id,
             flight_number: sbData.general?.flight_number || sbData.atc?.callsign || '',
             callsign: sbData.atc?.callsign || pilot.pilot_id,
