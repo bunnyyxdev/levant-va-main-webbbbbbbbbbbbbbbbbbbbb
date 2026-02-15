@@ -55,6 +55,7 @@ export default function DashboardPage() {
         activeFlights: [] as any[],
         dotm: null as any,
     });
+    const [metars, setMetars] = useState<Array<{icao: string; metar: string; error: boolean}>>([]);
     const [currentFlightPage, setCurrentFlightPage] = useState(0);
     const [currentReportPage, setCurrentReportPage] = useState(0);
 
@@ -90,12 +91,25 @@ export default function DashboardPage() {
         } catch {}
     }, []);
 
+    const fetchMetars = useCallback(async () => {
+        try {
+            const res = await fetch('/api/weather/metar');
+            const data = await res.json();
+            setMetars(data.metars || []);
+        } catch {}
+    }, []);
+
     useEffect(() => {
         setMounted(true);
         fetchDashboard();
+        fetchMetars();
         const interval = setInterval(fetchDashboard, DATA_POLL_MS);
-        return () => clearInterval(interval);
-    }, [fetchDashboard]);
+        const metarInterval = setInterval(fetchMetars, 300000); // Refresh every 5 minutes
+        return () => {
+            clearInterval(interval);
+            clearInterval(metarInterval);
+        };
+    }, [fetchDashboard, fetchMetars]);
 
     useEffect(() => {
         fetchFlights();
@@ -417,6 +431,46 @@ export default function DashboardPage() {
                                 <div className="text-center py-8">
                                     <Users className="w-10 h-10 text-gray-700 mx-auto mb-2" />
                                     <p className="text-gray-500 text-xs">No new pilots</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Airport METAR Widget */}
+                    <motion.div variants={itemVariants} className="bg-[#0a0a0a] rounded-2xl border border-white/[0.04] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.04] flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                                <MapPin className="w-5 h-5 text-cyan-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-bold text-white">Airport Weather</h2>
+                                <p className="text-xs text-gray-500">Live METAR</p>
+                            </div>
+                        </div>
+                        <div className="p-4 space-y-3">
+                            {metars.map((metar, i) => (
+                                <motion.div
+                                    key={metar.icao}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="p-3 rounded-xl bg-gradient-to-r from-cyan-500/5 to-transparent border border-cyan-500/10"
+                                >
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-xs font-bold text-cyan-400">{metar.icao}</span>
+                                        {!metar.error && (
+                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        )}
+                                    </div>
+                                    <p className={`text-xs font-mono leading-relaxed ${metar.error ? 'text-gray-600' : 'text-gray-400'}`}>
+                                        {metar.metar}
+                                    </p>
+                                </motion.div>
+                            ))}
+                            {metars.length === 0 && (
+                                <div className="text-center py-8">
+                                    <MapPin className="w-10 h-10 text-gray-700 mx-auto mb-2" />
+                                    <p className="text-gray-500 text-xs">Loading weather data...</p>
                                 </div>
                             )}
                         </div>
