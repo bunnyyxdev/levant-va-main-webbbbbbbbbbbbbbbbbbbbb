@@ -6,7 +6,6 @@ import { sendAccountActivatedEmail, sendAccountInactiveEmail, sendProfileEditedE
 import { checkAndUpgradeRank } from '@/lib/ranks';
 import { v4 as uuidv4 } from 'uuid';
 import PasswordReset from '@/models/PasswordReset';
-import bcrypt from 'bcryptjs';
 
 // GET - List all users with roles and status
 export async function GET() {
@@ -215,18 +214,30 @@ export async function POST(request: NextRequest) {
         }
 
         if (action === 'resetPassword') {
-            // Set temporary default password
-            const defaultPassword = 'pleasechangeyourpassword';
-            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+            // Generate reset token
+            const token = uuidv4();
+            const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-            // Update user password
-            user.password = hashedPassword;
-            await user.save();
+            // Delete any existing tokens for this email
+            await PasswordReset.deleteMany({ email: user.email });
+
+            // Create new reset token
+            await PasswordReset.create({
+                email: user.email,
+                token,
+                expires_at: expiresAt,
+            });
+
+            // Send password reset email
+            try {
+                await sendPasswordResetEmail(user.email, token);
+            } catch (emailError) {
+                console.error('Failed to send password reset email:', emailError);
+            }
 
             return NextResponse.json({ 
                 success: true, 
-                message: `Password reset successfully. Temporary password: ${defaultPassword}`,
-                defaultPassword 
+                message: 'Password reset email sent to user'
             });
         }
 
