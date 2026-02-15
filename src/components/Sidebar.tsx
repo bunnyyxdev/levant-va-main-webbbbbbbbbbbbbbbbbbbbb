@@ -47,11 +47,6 @@ export default function Sidebar() {
     const { isAdmin, user } = useAuth();
     const [vaultBalance, setVaultBalance] = useState<number | null>(null);
     const [manualPirepCount, setManualPirepCount] = useState(0);
-    const [openAdminGroups, setOpenAdminGroups] = useState<Record<string, boolean>>({});
-
-    const toggleAdminGroup = useCallback((label: string) => {
-        setOpenAdminGroups(prev => ({ ...prev, [label]: !prev[label] }));
-    }, []);
 
     const isActive = useCallback((path: string) => {
         if (!pathname) return false;
@@ -214,52 +209,37 @@ export default function Sidebar() {
                                     );
                                 })}
 
-                                {/* Admin sub-group dropdowns */}
-                                {isAdminCategory && adminSubGroups.map((group) => {
-                                    const isOpen = openAdminGroups[group.label] || group.items.some(i => isActive(i.path));
-                                    const hasActiveChild = group.items.some(i => isActive(i.path));
-                                    return (
-                                        <div key={group.label}>
-                                            <button
-                                                onClick={() => toggleAdminGroup(group.label)}
-                                                className={`w-full flex items-center justify-between px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 ${
-                                                    hasActiveChild
-                                                        ? 'text-accent-gold bg-accent-gold/[0.04]'
-                                                        : 'text-gray-500 hover:text-white hover:bg-white/[0.04]'
-                                                }`}
-                                            >
-                                                <span className="text-[9px] font-bold uppercase tracking-[0.15em]">{group.label}</span>
-                                                <ChevronDown size={14} className={`transition-transform duration-300 ease-out ${isOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            <div
-                                                className={`overflow-hidden transition-all duration-300 ease-out ${
-                                                    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                                                }`}
-                                            >
-                                                <div className="ml-2 border-l border-accent-gold/10 space-y-0.5 pl-1 py-0.5">
-                                                    {group.items.map((item) => {
-                                                        const active = isActive(item.path);
-                                                        return (
-                                                            <Link
-                                                                key={item.name}
-                                                                href={item.path}
-                                                                className={`flex items-center px-3 py-1.5 text-[12px] font-medium rounded-lg transition-all duration-200 group relative ${
-                                                                    active
-                                                                        ? 'bg-accent-gold/[0.08] text-accent-gold'
-                                                                        : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                                                                }`}
-                                                            >
-                                                                {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-3 bg-accent-gold rounded-r-full" />}
-                                                                <item.icon className={`w-[15px] h-[15px] mr-2.5 flex-shrink-0 transition-colors duration-200 ${active ? 'text-accent-gold' : 'text-gray-600 group-hover:text-accent-gold/70'}`} />
-                                                                {item.name}
-                                                            </Link>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
+                                {/* Admin sub-group items (flat list) */}
+                                {isAdminCategory && adminSubGroups.map((group) => (
+                                    <div key={group.label}>
+                                        <div className="px-3 py-2 text-[9px] font-bold text-gray-600 uppercase tracking-[0.15em]">
+                                            {group.label}
                                         </div>
-                                    );
-                                })}
+                                        {group.items.map((item) => {
+                                            const active = isActive(item.path);
+                                            const linkClasses = `flex items-center px-3 py-2 text-[13px] font-medium rounded-lg transition-all duration-200 group relative ${
+                                                active
+                                                    ? 'bg-accent-gold/[0.08] text-accent-gold'
+                                                    : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
+                                            }`;
+                                            const iconClasses = `w-[18px] h-[18px] mr-3 transition-colors duration-200 flex-shrink-0 ${
+                                                active ? 'text-accent-gold' : 'text-gray-500 group-hover:text-accent-gold'
+                                            }`;
+                                            const activeBar = active ? <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-accent-gold rounded-r-full" /> : null;
+                                            return (
+                                                <Link
+                                                    key={item.name}
+                                                    href={item.path}
+                                                    className={linkClasses}
+                                                >
+                                                    {activeBar}
+                                                    <item.icon className={iconClasses} />
+                                                    {item.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     );
