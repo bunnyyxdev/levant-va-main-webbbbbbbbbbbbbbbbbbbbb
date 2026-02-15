@@ -4,7 +4,7 @@ import { SimBridge } from '../bridge';
 import { cn } from './ui/utils';
 import { HoverBorderGradient } from './ui/hover-border-gradient';
 import { pushToast } from './ToastOverlay';
-import { fetchActiveBid } from '../api';
+import { fetchSimBrief } from '../api';
 import type { FlightState, TelemetryData, BidData } from '../types';
 
 interface Props {
@@ -369,28 +369,28 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
           <HoverBorderGradient
             onClick={() => {
               if (pilotId) {
-                fetchActiveBid(pilotId).then(result => {
-                  if (result.bid) {
+                fetchSimBrief(pilotId).then(result => {
+                  if (result.flightPlan) {
                     const bidData: BidData = {
                       type: 'bid',
-                      callsign: result.bid.callsign,
-                      flightNumber: result.bid.flightNumber || '',
-                      departureIcao: result.bid.departureIcao,
-                      arrivalIcao: result.bid.arrivalIcao,
-                      departureName: result.bid.departureName || '',
-                      arrivalName: result.bid.arrivalName || '',
-                      aircraftType: result.bid.aircraftType || '',
-                      aircraftRegistration: result.bid.aircraftRegistration || '',
-                      route: result.bid.route || '',
-                      pax: result.bid.pax || 0,
-                      cargo: result.bid.cargo || 0,
-                      createdAt: result.bid.createdAt,
-                      expiresAt: result.bid.expiresAt,
+                      callsign: result.flightPlan.callsign,
+                      flightNumber: result.flightPlan.flightNumber || '',
+                      departureIcao: result.flightPlan.departureIcao,
+                      arrivalIcao: result.flightPlan.arrivalIcao,
+                      departureName: result.flightPlan.departureName || '',
+                      arrivalName: result.flightPlan.arrivalName || '',
+                      aircraftType: result.flightPlan.aircraftType || '',
+                      aircraftRegistration: result.flightPlan.aircraftRegistration || '',
+                      route: result.flightPlan.route || '',
+                      pax: result.flightPlan.pax || 0,
+                      cargo: result.flightPlan.cargo || 0,
+                      createdAt: result.flightPlan.createdAt,
+                      expiresAt: result.flightPlan.expiresAt,
                     };
                     injectBid?.(bidData);
-                    pushToast('success', `Bid loaded: ${bidData.departureIcao} → ${bidData.arrivalIcao}`);
+                    pushToast('success', `SimBrief loaded: ${bidData.departureIcao} → ${bidData.arrivalIcao}`);
                   } else {
-                    pushToast('info', 'No active bid found');
+                    pushToast('info', 'No SimBrief flight plan found');
                   }
                 }).catch(() => pushToast('danger', 'Failed to reach server'));
               }
@@ -436,39 +436,36 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
   const handleFetchBid = useCallback(async () => {
     if (!pilotId || loading) return;
     setLoading(true);
-    console.log('[EmptyState] Fetching bid for pilot:', pilotId);
+    console.log('[EmptyState] Fetching SimBrief flight plan for pilot:', pilotId);
     try {
-      // 1. Fire C# bridge (pushes bid to global state via message)
-      SimBridge.fetchBid();
-      // 2. Direct API call for immediate feedback + state injection
-      const result = await fetchActiveBid(pilotId);
-      console.log('[EmptyState] API result:', JSON.stringify(result));
+      const result = await fetchSimBrief(pilotId);
+      console.log('[EmptyState] SimBrief result:', JSON.stringify(result));
       if (result.error) {
         pushToast('danger', `Fetch failed: ${result.error}`);
-      } else if (!result.bid) {
-        pushToast('warning', 'No active bid found — book a flight on the web portal first');
+      } else if (!result.flightPlan) {
+        pushToast('warning', 'No SimBrief flight plan found — create a flight plan on SimBrief first');
       } else {
-        // ── KEY FIX: Inject bid directly into global state ──
+        // Convert SimBrief flight plan to BidData format
         const bidData: BidData = {
           type: 'bid',
-          callsign: result.bid.callsign,
-          flightNumber: result.bid.flightNumber,
-          departureIcao: result.bid.departureIcao,
-          arrivalIcao: result.bid.arrivalIcao,
-          departureName: result.bid.departureName,
-          arrivalName: result.bid.arrivalName,
-          aircraftType: result.bid.aircraftType,
-          aircraftRegistration: result.bid.aircraftRegistration,
-          route: result.bid.route,
-          pax: result.bid.pax,
-          cargo: result.bid.cargo,
-          createdAt: result.bid.createdAt,
-          expiresAt: result.bid.expiresAt,
+          callsign: result.flightPlan.callsign,
+          flightNumber: result.flightPlan.flightNumber,
+          departureIcao: result.flightPlan.departureIcao,
+          arrivalIcao: result.flightPlan.arrivalIcao,
+          departureName: result.flightPlan.departureName,
+          arrivalName: result.flightPlan.arrivalName,
+          aircraftType: result.flightPlan.aircraftType,
+          aircraftRegistration: result.flightPlan.aircraftRegistration,
+          route: result.flightPlan.route,
+          pax: result.flightPlan.pax,
+          cargo: result.flightPlan.cargo,
+          createdAt: result.flightPlan.createdAt,
+          expiresAt: result.flightPlan.expiresAt,
         };
-        console.log('[EmptyState] Injecting bid into global state:', bidData.callsign);
+        console.log('[EmptyState] Injecting SimBrief flight plan into global state:', bidData.callsign);
         injectBid?.(bidData);
-        addLogEntry?.(`Flight Plan Loaded — ${bidData.departureIcao} → ${bidData.arrivalIcao} — Ready for Takeoff`);
-        pushToast('success', `Bid loaded: ${result.bid.departureIcao} → ${result.bid.arrivalIcao}`);
+        addLogEntry?.(`SimBrief Flight Plan Loaded — ${bidData.departureIcao} → ${bidData.arrivalIcao} — Ready for Takeoff`);
+        pushToast('success', `SimBrief loaded: ${result.flightPlan.departureIcao} → ${result.flightPlan.arrivalIcao}`);
       }
     } catch {
       pushToast('danger', 'Failed to reach the server');

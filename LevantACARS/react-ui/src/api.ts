@@ -122,6 +122,31 @@ export interface FetchBidResult {
   expiresAt: string;
 }
 
+export interface SimBriefFlightPlan {
+  callsign: string;
+  flightNumber: string;
+  departureIcao: string;
+  arrivalIcao: string;
+  departureName: string;
+  arrivalName: string;
+  alternateIcao: string;
+  alternateName: string;
+  aircraftType: string;
+  aircraftRegistration: string;
+  route: string;
+  pax: number;
+  cargo: number;
+  cruiseAltitude: number;
+  flightTime: string;
+  distance: number;
+  fuel: number;
+  originMetar: string;
+  destMetar: string;
+  altnMetar: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 // ── Bridge-based bid fetch (WebView2) ─────────────────────────────
 let _pendingBidResolve: ((result: { bid: FetchBidResult | null; error?: string }) => void) | null = null;
 
@@ -159,6 +184,42 @@ if (window.chrome?.webview) {
       }
     } catch { /* ignore */ }
   });
+}
+
+export async function fetchSimBrief(pilotId: string): Promise<{ flightPlan: SimBriefFlightPlan | null; error?: string }> {
+  const controller = new AbortController();
+  const timeoutMs = 10000;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const res = await fetch('https://www.levant-va.com/api/acars/simbrief', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilotId }),
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeout);
+    
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({} as any));
+      const msg = err?.error || `Server error (${res.status})`;
+      return { flightPlan: null, error: msg };
+    }
+    
+    const data = await res.json();
+    if (!data.flightPlan) {
+      return { flightPlan: null, error: 'No flight plan found' };
+    }
+    
+    return { flightPlan: data.flightPlan };
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      return { flightPlan: null, error: 'Request timed out' };
+    }
+    return { flightPlan: null, error: 'Failed to fetch SimBrief flight plan' };
+  }
 }
 
 export async function fetchActiveBid(pilotId: string): Promise<{ bid: FetchBidResult | null; error?: string }> {
