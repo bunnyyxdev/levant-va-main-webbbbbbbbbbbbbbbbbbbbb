@@ -107,7 +107,6 @@ export default function Sidebar() {
             items: [
                 { name: 'User Management', path: '/portal/admin/users', icon: User },
                 { name: 'PIREP Management', path: '/portal/admin/pireps', icon: FileText },
-                { name: 'Analytics', path: '/portal/admin/analytics', icon: BarChart3 },
             ],
         },
     ], []);
