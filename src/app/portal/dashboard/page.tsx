@@ -235,6 +235,67 @@ export default function DashboardPage() {
                         </div>
                     </motion.div>
 
+                    {/* Live Flight Status */}
+                    <motion.div variants={itemVariants} className="bg-[#0a0a0a] rounded-2xl border border-white/[0.04] overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                                    <Plane className="w-5 h-5 text-amber-500" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">Live Flight Status</h2>
+                                    <p className="text-xs text-gray-500">Active flights in progress</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="divide-y divide-white/[0.04]">
+                            {dashboardData.activeFlights.slice(0, 5).map((flight: any, i: number) => (
+                                <motion.div
+                                    key={flight._id || i}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="p-4 hover:bg-white/[0.02] transition-colors"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 flex-1">
+                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center flex-shrink-0">
+                                                <Plane className="w-5 h-5 text-emerald-500" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-bold text-white">{flight.pilot?.first_name} {flight.pilot?.last_name}</span>
+                                                    <span className="text-xs text-gray-600">•</span>
+                                                    <span className="text-xs text-gray-500">{flight.pilot?.pilot_id}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <span className="font-mono font-semibold text-emerald-500">{flight.departure_icao}</span>
+                                                    <ChevronRight className="w-3 h-3 text-gray-600" />
+                                                    <span className="font-mono font-semibold text-emerald-500">{flight.arrival_icao}</span>
+                                                    <span className="text-gray-600">•</span>
+                                                    <span className="text-gray-500">{flight.aircraft_type}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {flight.phase && (
+                                                <span className={`px-2 py-1 rounded-lg text-xs font-medium border ${statusColors[flight.phase] || 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
+                                                    {flight.phase}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                            {dashboardData.activeFlights.length === 0 && (
+                                <div className="p-12 text-center">
+                                    <Plane className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                                    <p className="text-gray-500 text-sm">No active flights</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
                     {/* Recent PIREPs */}
                     <motion.div variants={itemVariants} className="bg-[#0a0a0a] rounded-2xl border border-white/[0.04] overflow-hidden">
                         <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between">
