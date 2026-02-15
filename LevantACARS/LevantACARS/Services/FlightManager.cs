@@ -455,14 +455,6 @@ public sealed class FlightManager : IDisposable
     {
         if (!_flightActive) return null;
 
-        // Validate: Cannot finish flight until engines are turned off
-        if (_lastEnginesOn)
-        {
-            _logger.LogWarning("[FlightManager] Cannot finish flight - engines are still running. Shut down engines first.");
-            OnFlightEvent?.Invoke("Cannot finish flight: Engines must be OFF before submitting PIREP");
-            return null;
-        }
-
         _flightActive = false;
         StopHeartbeat();
         await Task.CompletedTask; // Ensure async path for PIREP submission below

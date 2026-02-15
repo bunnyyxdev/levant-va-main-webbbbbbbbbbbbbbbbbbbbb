@@ -169,12 +169,18 @@ public sealed class FlightStateMachine
                     // Stopped with parking brake → arrived
                     if (data.OnGround && data.GroundSpeed < 2 && data.ParkingBrake && timeSinceChange > 3000)
                         TransitionTo(FlightPhase.Arrived, now);
+                    // Engines off while stopped → skip straight to shutdown (auto-submit)
+                    if (data.OnGround && data.GroundSpeed < 2 && !data.EnginesOn && timeSinceChange > 3000)
+                        TransitionTo(FlightPhase.Shutdown, now);
                     break;
 
                 case FlightPhase.TaxiIn:
                     // Stopped with parking brake → arrived
                     if (data.OnGround && data.GroundSpeed < 2 && data.ParkingBrake && timeSinceChange > 5000)
                         TransitionTo(FlightPhase.Arrived, now);
+                    // Engines off while stopped → skip straight to shutdown (auto-submit)
+                    if (data.OnGround && data.GroundSpeed < 2 && !data.EnginesOn && timeSinceChange > 3000)
+                        TransitionTo(FlightPhase.Shutdown, now);
                     break;
 
                 case FlightPhase.Arrived:
