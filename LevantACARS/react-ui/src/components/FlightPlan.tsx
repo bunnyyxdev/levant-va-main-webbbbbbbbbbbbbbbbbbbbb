@@ -399,7 +399,7 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
           >
             <span className="flex items-center gap-2 text-accent-gold">
               <RefreshCw size={13} />
-              Fetch Bid
+              Fetch SimBrief
             </span>
           </HoverBorderGradient>
         </div>
@@ -483,7 +483,7 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
         <Briefcase size={18} className="text-slate-600" />
       </div>
       <h3 className="text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">No Flight Plan</h3>
-      <p className="text-[9px] text-slate-600 font-mono tracking-widest mt-1 mb-5">BOOK A FLIGHT ON THE WEBSITE TO BEGIN</p>
+      <p className="text-[9px] text-slate-600 font-mono tracking-widest mt-1 mb-5">FETCH YOUR SIMBRIEF FLIGHT PLAN TO BEGIN</p>
       <HoverBorderGradient
         onClick={handleFetchBid}
         disabled={loading || !pilotId}
@@ -499,12 +499,12 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
         ) : (
           <span className="flex items-center gap-2 text-accent-gold">
             <RefreshCw size={13} />
-            Fetch Bid
+            Fetch SimBrief
           </span>
         )}
       </HoverBorderGradient>
       <p className="text-[9px] text-slate-700 font-mono mt-4 tracking-wider">
-        Checks server for your active booking
+        Fetches your latest SimBrief flight plan
       </p>
     </div>
   );
