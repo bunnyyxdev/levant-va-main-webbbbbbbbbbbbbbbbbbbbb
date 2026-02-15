@@ -428,6 +428,21 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
   const [simbriefId, setSimbriefId] = useState<string | null>(null);
   const cooldownRef = useRef<number | null>(null);
 
+  // Fetch SimBrief ID from pilot settings on mount
+  useEffect(() => {
+    if (!pilotId) return;
+    fetch('https://www.levant-va.com/api/acars/pilot-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pilotId }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.simbriefId) setSimbriefId(data.simbriefId);
+      })
+      .catch(() => {});
+  }, [pilotId]);
+
   useEffect(() => {
     return () => {
       if (cooldownRef.current) window.clearTimeout(cooldownRef.current);
@@ -505,6 +520,13 @@ function EmptyState({ pilotId, injectBid, addLogEntry }: { pilotId?: string; inj
       <p className="text-[9px] text-slate-700 font-mono mt-4 tracking-wider">
         Fetches your latest SimBrief flight plan
       </p>
+      {simbriefId && (
+        <div className="mt-3 px-3 py-1.5 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
+          <p className="text-[8px] text-cyan-400/60 font-mono tracking-wider">
+            SimBrief ID: <span className="text-cyan-400 font-bold">{simbriefId}</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
