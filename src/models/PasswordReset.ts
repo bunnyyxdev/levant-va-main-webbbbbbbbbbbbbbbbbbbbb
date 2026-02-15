@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPasswordReset extends Document {
-    pilot_id: mongoose.Types.ObjectId;
+    email: string;
     token: string;
     expires_at: Date;
     used_at?: Date;
@@ -9,7 +9,7 @@ export interface IPasswordReset extends Document {
 }
 
 const PasswordResetSchema = new Schema<IPasswordReset>({
-    pilot_id: { type: Schema.Types.ObjectId, ref: 'Pilot', required: true, index: true },
+    email: { type: String, required: true, index: true },
     token: { type: String, required: true, unique: true, index: true },
     expires_at: { type: Date, required: true },
     used_at: Date,

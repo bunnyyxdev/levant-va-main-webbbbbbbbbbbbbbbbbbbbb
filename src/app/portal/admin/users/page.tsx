@@ -79,6 +79,7 @@ export default function AdminUsersPage() {
     const openEditModal = useCallback((user: User) => {
         setSelectedUser(user);
         setError('');
+        setShowDeleteConfirm(false);
         setEditForm({
             pilotId: user.pilotId, firstName: user.firstName, lastName: user.lastName,
             email: user.email, role: user.role, status: user.status, rank: user.rank,
@@ -604,7 +605,11 @@ export default function AdminUsersPage() {
                             )}
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => setSelectedUser(null)}
+                                    onClick={() => {
+                                        setSelectedUser(null);
+                                        setShowDeleteConfirm(false);
+                                        setError('');
+                                    }}
                                     className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.12] transition-all"
                                 >
                                     Cancel
