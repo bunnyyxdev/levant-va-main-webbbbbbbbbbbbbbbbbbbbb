@@ -5,13 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
     Clock, TrendingDown, Target, Zap, Plane, Calendar, Check, User, Shield,
-    ChevronRight, Trophy, Medal, Camera, Loader2, Trash2, X, Sparkles, Award, MapPin
+    ChevronRight, Trophy, Medal, Camera, Loader2, Trash2, X, Award, MapPin, Star, Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { BackgroundBeams } from '@/components/ui/background-beams';
-import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
-import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
-import { HyperText } from '@/components/ui/hyper-text';
 
 interface Pilot {
     pilot_id: string;
@@ -258,9 +254,8 @@ export default function ProfilePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center relative">
-                <BackgroundBeams />
-                <div className="text-center z-10">
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
                     <Loader2 className="w-12 h-12 text-amber-500 animate-spin mx-auto mb-4" />
                     <p className="text-gray-400">Loading profile...</p>
                 </div>
@@ -270,9 +265,8 @@ export default function ProfilePage() {
     
     if (!pilot) {
         return (
-            <div className="min-h-screen flex items-center justify-center relative">
-                <BackgroundBeams />
-                <div className="text-center z-10">
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
                     <User className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                     <p className="text-red-400">Pilot not found</p>
                 </div>
@@ -289,306 +283,189 @@ export default function ProfilePage() {
     const avatarUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || ""}/image/upload/c_fill,w_200,h_200,f_auto,q_auto/v${avatarTimestamp}/avatars/pilot_${pilot.pilot_id}`;
 
     return (
-        <div className="min-h-screen relative pb-20">
-            <BackgroundBeams className="opacity-40" />
-            
-            {/* Hero Section with Avatar */}
-            <div className="relative z-10 pt-8 pb-12">
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-7xl mx-auto px-4"
-                >
-                    <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-                        {/* Avatar */}
-                        <div className="relative group">
-                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 p-1 relative">
-                                <div className="w-full h-full rounded-full bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
-                                    {!avatarError ? (
-                                        <img 
-                                            key={avatarTimestamp}
-                                            src={avatarUrl} 
-                                            alt="Avatar" 
-                                            className="w-full h-full object-cover" 
-                                            onError={() => setAvatarError(true)}
-                                        />
-                                    ) : (
-                                        <span className="text-4xl font-bold text-amber-500">
-                                            {pilot.first_name[0]}{pilot.last_name[0]}
-                                        </span>
-                                    )}
-                                </div>
-                                
-                                {/* Upload Overlay */}
-                                <div className="absolute inset-0 rounded-full bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {uploadingImage ? (
-                                        <Loader2 className="w-8 h-8 text-white animate-spin" />
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <label className="cursor-pointer hover:scale-110 transition-transform">
-                                                <Camera className="w-8 h-8 text-white" />
-                                                <input 
-                                                    type="file" 
-                                                    className="hidden" 
-                                                    accept="image/*" 
-                                                    onChange={handleImageUpload} 
-                                                    disabled={uploadingImage}
-                                                />
-                                            </label>
-                                            {pilot.avatar_url && (
-                                                <button 
-                                                    onClick={handleRemoveAvatar}
-                                                    className="hover:scale-110 transition-transform text-red-400"
-                                                >
-                                                    <Trash2 className="w-6 h-6" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+        <div className="max-w-6xl mx-auto space-y-6 pb-8">
+            {/* Header Card with Avatar */}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-[#1a1a1a] via-[#141414] to-[#0f0f0f] rounded-2xl border border-white/[0.04] p-6"
+            >
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    {/* Avatar */}
+                    <div className="relative group flex-shrink-0">
+                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 p-1">
+                            <div className="w-full h-full rounded-xl bg-[#0a0a0a] flex items-center justify-center overflow-hidden border-2 border-amber-500/30">
+                                {!avatarError ? (
+                                    <img 
+                                        key={avatarTimestamp}
+                                        src={avatarUrl} 
+                                        alt="Avatar" 
+                                        className="w-full h-full object-cover" 
+                                        onError={() => setAvatarError(true)}
+                                    />
+                                ) : (
+                                    <span className="text-3xl font-bold text-amber-500/60">
+                                        {pilot.first_name[0]}{pilot.last_name[0]}
+                                    </span>
+                                )}
                             </div>
                             
-                            {/* Status Badge */}
-                            <div className={`absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-[#0a0a0a] ${
-                                pilot.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-600'
-                            }`} />
+                            {/* Upload Overlay */}
+                            <div className="absolute inset-0 rounded-2xl bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                {uploadingImage ? (
+                                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                ) : (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <label className="cursor-pointer hover:scale-110 transition-transform">
+                                            <Camera className="w-6 h-6 text-white" />
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                accept="image/*" 
+                                                onChange={handleImageUpload} 
+                                                disabled={uploadingImage}
+                                            />
+                                        </label>
+                                        {pilot.avatar_url && (
+                                            <button 
+                                                onClick={handleRemoveAvatar}
+                                                className="hover:scale-110 transition-transform text-red-400"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
+                        
+                        {/* Status Badge */}
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-[#1a1a1a] ${
+                            pilot.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-600'
+                        }`} />
+                    </div>
 
-                        {/* Name & Info */}
-                        <div className="flex-1 text-center md:text-left">
-                            <HyperText 
-                                className="text-4xl md:text-5xl font-bold text-white mb-2"
-                            >
-                                {`${pilot.first_name} ${pilot.last_name}`}
-                            </HyperText>
-                            
-                            <HoverBorderGradient
-                                containerClassName="mb-4"
-                                className="text-amber-500 font-mono font-bold"
-                            >
-                                {pilot.pilot_id}
-                            </HoverBorderGradient>
-
-                            <div className="flex flex-wrap gap-4 justify-center md:justify-start text-sm">
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>Joined {new Date(pilot.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${pilot.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-600'}`} />
-                                    <span className={pilot.status === 'Active' ? 'text-emerald-400' : 'text-gray-500'}>
+                    {/* Info */}
+                    <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
+                            <div>
+                                <h1 className="text-2xl font-bold text-white mb-1">
+                                    {pilot.first_name} {pilot.last_name}
+                                </h1>
+                                <div className="flex items-center gap-3 text-sm">
+                                    <span className="text-amber-500 font-mono font-bold">{pilot.pilot_id}</span>
+                                    <span className={`flex items-center gap-1 ${pilot.status === 'Active' ? 'text-emerald-400' : 'text-gray-500'}`}>
+                                        <div className={`w-2 h-2 rounded-full ${pilot.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-600'}`} />
                                         {pilot.status}
                                     </span>
                                 </div>
-                                {pilot.country && (
-                                    <div className="flex items-center gap-2 text-gray-400">
-                                        <MapPin className="w-4 h-4" />
-                                        <img src={getFlagUrl(pilot.country)} alt="" className="w-5 h-4 rounded" />
-                                        <span>{getCountryName(pilot.country)}</span>
-                                    </div>
-                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-4">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                <span>Joined {new Date(pilot.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                            </div>
+                            {pilot.country && (
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    <img src={getFlagUrl(pilot.country)} alt="" className="w-4 h-3 rounded" />
+                                    <span>{getCountryName(pilot.country)}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Rank Progress */}
+                        <div className="bg-[#0a0a0a] rounded-xl p-4 border border-white/[0.04]">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-4 h-4 text-amber-500" />
+                                    <span className="text-xs font-semibold text-white">{currentRank.name}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">Next: {nextRank.name}</span>
+                            </div>
+                            <div className="relative h-2 bg-black/50 rounded-full overflow-hidden mb-1">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600 to-amber-500 rounded-full"
+                                />
+                            </div>
+                            <div className="flex justify-between text-[10px] text-gray-500">
+                                <span>{totalHours.toFixed(1)}h</span>
+                                <span>{nextRank.hours}h</span>
                             </div>
                         </div>
                     </div>
+                </div>
+            </motion.div>
 
-                    {/* Rank Progress Bar */}
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-2xl p-6 border border-white/5"
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                    { label: 'Flight Time', value: `${Math.floor(totalHours)}h`, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { label: 'Avg Landing', value: `${Math.abs(pilot.average_landing)} fpm`, icon: TrendingDown, color: landingQuality === 'butter' ? 'text-emerald-400' : 'text-amber-400', bg: landingQuality === 'butter' ? 'bg-emerald-500/10' : 'bg-amber-500/10' },
+                    { label: 'Credits', value: pilot.balance >= 1000 ? `${(pilot.balance / 1000).toFixed(1)}K` : pilot.balance.toString(), icon: Zap, color: 'text-green-400', bg: 'bg-green-500/10' },
+                    { label: 'Total Flights', value: pilot.total_flights.toString(), icon: Target, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                ].map((stat, i) => (
+                    <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="bg-[#0a0a0a] border border-white/[0.04] rounded-xl p-4 hover:border-white/[0.08] transition-colors"
                     >
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <Shield className="w-5 h-5 text-amber-500" />
-                                <span className="text-sm font-semibold text-white">Rank Progression</span>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium">{stat.label}</span>
+                            <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center`}>
+                                <stat.icon className={`w-4 h-4 ${stat.color}`} />
                             </div>
-                            <span className="text-xs text-amber-500 font-mono">
-                                Next: {nextRank.name}
-                            </span>
                         </div>
-                        
-                        <div className="relative h-4 bg-black/50 rounded-full overflow-hidden mb-2">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progress}%` }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-400 rounded-full"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                        </div>
-                        
-                        <div className="flex justify-between text-xs">
-                            <span className="text-gray-400 font-medium">{currentRank.name}</span>
-                            <span className="text-amber-500 font-mono">{totalHours.toFixed(1)}h / {nextRank.hours}h</span>
-                        </div>
+                        <div className="text-2xl font-bold text-white">{stat.value}</div>
                     </motion.div>
-                </motion.div>
+                ))}
             </div>
 
-            {/* Bento Grid Stats */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4">
-                <BentoGrid className="mb-8">
-                    <BentoGridItem
-                        title={`${Math.floor(totalHours)}h`}
-                        description={pilot.transfer_hours ? `+${pilot.transfer_hours}h transfer` : 'Total Flight Time'}
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-lg">
-                                <Clock className="w-12 h-12 text-amber-500" />
-                            </div>
-                        }
-                        icon={<Sparkles className="w-4 h-4 text-amber-500" />}
-                        className="md:col-span-1"
-                    />
-                    
-                    <BentoGridItem
-                        title={`${Math.abs(pilot.average_landing)} fpm`}
-                        description={landingQuality === 'butter' ? '🧈 Butter Landing!' : landingQuality === 'good' ? 'Smooth Landing' : 'Average Landing'}
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-emerald-500/20 to-green-500/10 rounded-lg">
-                                <TrendingDown className="w-12 h-12 text-emerald-500" />
-                            </div>
-                        }
-                        icon={<Award className="w-4 h-4 text-emerald-500" />}
-                        className="md:col-span-1"
-                    />
-                    
-                    <BentoGridItem
-                        title={pilot.balance >= 1000 ? `${(pilot.balance / 1000).toFixed(1)}K` : pilot.balance.toString()}
-                        description="Credits Balance"
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-green-500/20 to-emerald-500/10 rounded-lg">
-                                <Zap className="w-12 h-12 text-green-500" />
-                            </div>
-                        }
-                        icon={<Sparkles className="w-4 h-4 text-green-500" />}
-                        className="md:col-span-1"
-                    />
-                    
-                    <BentoGridItem
-                        title={pilot.total_flights.toString()}
-                        description="Total PIREPs"
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-lg">
-                                <Target className="w-12 h-12 text-blue-500" />
-                            </div>
-                        }
-                        icon={<Check className="w-4 h-4 text-blue-500" />}
-                        className="md:col-span-1"
-                    />
-                    
-                    <BentoGridItem
-                        title={(pilot.routes_flown?.length || 0).toString()}
-                        description="Unique Routes"
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-lg">
-                                <Plane className="w-12 h-12 text-purple-500" />
-                            </div>
-                        }
-                        icon={<MapPin className="w-4 h-4 text-purple-500" />}
-                        className="md:col-span-1"
-                    />
-                    
-                    <BentoGridItem
-                        title="Pilot Details"
-                        description={
-                            <div className="space-y-2 mt-2">
-                                {pilot.country && (
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-gray-500">Origin</span>
-                                        <span className="flex items-center gap-2 text-white">
-                                            <img src={getFlagUrl(pilot.country)} alt="" className="w-4 h-3 rounded" />
-                                            {getCountryName(pilot.country)}
-                                        </span>
-                                    </div>
-                                )}
-                                {pilot.vatsim_id && (
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-gray-500">VATSIM</span>
-                                        <a href={`https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_id}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
-                                            {pilot.vatsim_id}
-                                        </a>
-                                    </div>
-                                )}
-                                {pilot.ivao_id && (
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-gray-500">IVAO</span>
-                                        <a href={`https://www.ivao.aero/Member.aspx?Id=${pilot.ivao_id}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
-                                            {pilot.ivao_id}
-                                        </a>
-                                    </div>
-                                )}
-                            </div>
-                        }
-                        header={
-                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-500/20 to-slate-500/10 rounded-lg">
-                                <User className="w-12 h-12 text-gray-400" />
-                            </div>
-                        }
-                        className="md:col-span-1"
-                    />
-                </BentoGrid>
-
-                {/* Recent Flights & Badges Grid */}
-                <div className="grid lg:grid-cols-3 gap-6">
-                    {/* Recent Flights */}
+            {/* Main Content Grid */}
+            <div className="grid lg:grid-cols-3 gap-6">
+                {/* Left Column - Pilot Details & Badges */}
+                <div className="space-y-6">
+                    {/* Pilot Details */}
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="lg:col-span-2 bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-2xl border border-white/5 overflow-hidden"
+                        transition={{ delay: 0.3 }}
+                        className="bg-[#0a0a0a] border border-white/[0.04] rounded-xl overflow-hidden"
                     >
-                        <div className="p-6 border-b border-white/5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-amber-500" />
-                            </div>
-                            <h2 className="text-xl font-semibold text-white">Recent Flights</h2>
-                            <span className="ml-auto text-xs text-gray-500">{flightHistory.length} flights</span>
+                        <div className="px-4 py-3 border-b border-white/[0.04] flex items-center gap-2">
+                            <User className="w-4 h-4 text-amber-500" />
+                            <h2 className="text-sm font-semibold text-white">Pilot Details</h2>
                         </div>
-                        
-                        <div className="p-6 space-y-3">
-                            {flightHistory.length > 0 ? (
-                                flightHistory.slice(0, 5).map((flight, i) => (
-                                    <motion.div
-                                        key={flight._id || i}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.5 + i * 0.1 }}
-                                        className="bg-black/30 rounded-xl p-4 border border-white/5 hover:border-amber-500/30 transition-all group"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Plane className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" />
-                                                <div>
-                                                    <div className="flex items-center gap-2 text-amber-500 font-mono font-semibold">
-                                                        <span>{flight.departure_icao}</span>
-                                                        <ChevronRight className="w-3 h-3 text-gray-600" />
-                                                        <span>{flight.arrival_icao}</span>
-                                                    </div>
-                                                    <div className="text-xs text-gray-400 mt-1">
-                                                        {flight.aircraft_type || '-'} • {flight.flight_time ? `${Math.floor(flight.flight_time / 60)}:${String(flight.flight_time % 60).padStart(2, '0')}` : '-'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-lg text-xs font-medium border ${
-                                                flight.status === 'Accepted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                flight.status === 'Rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
-                                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                            }`}>
-                                                {flight.status === 'Accepted' && <Check className="w-3 h-3 inline mr-1" />}
-                                                {flight.status === 'Rejected' && <X className="w-3 h-3 inline mr-1" />}
-                                                {flight.status}
-                                            </span>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="text-center py-12">
-                                    <Plane className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                                    <p className="text-gray-500 text-sm">No flights recorded yet</p>
-                                    <p className="text-gray-600 text-xs mt-1">Complete your first flight to see it here</p>
+                        <div className="p-4 space-y-3">
+                            {[
+                                { label: 'Origin', value: pilot.country ? (
+                                    <span className="flex items-center gap-2">
+                                        <img src={getFlagUrl(pilot.country)} alt="" className="w-4 h-3 rounded" />
+                                        {getCountryName(pilot.country)}
+                                    </span>
+                                ) : 'Not set' },
+                                { label: 'VATSIM CID', value: pilot.vatsim_id || 'Not Provided', link: pilot.vatsim_id ? `https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_id}` : null },
+                                { label: 'IVAO VID', value: pilot.ivao_id || 'Not Provided', link: pilot.ivao_id ? `https://www.ivao.aero/Member.aspx?Id=${pilot.ivao_id}` : null },
+                                { label: 'Routes Flown', value: (pilot.routes_flown?.length || 0).toString() },
+                            ].map((item, i) => (
+                                <div key={i} className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-500">{item.label}</span>
+                                    {item.link ? (
+                                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors">
+                                            {item.value}
+                                        </a>
+                                    ) : (
+                                        <span className="text-white">{item.value}</span>
+                                    )}
                                 </div>
-                            )}
+                            ))}
                         </div>
                     </motion.div>
 
@@ -596,54 +473,109 @@ export default function ProfilePage() {
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-2xl border border-white/5 overflow-hidden"
+                        transition={{ delay: 0.4 }}
+                        className="bg-[#0a0a0a] border border-white/[0.04] rounded-xl overflow-hidden"
                     >
-                        <div className="p-6 border-b border-white/5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                <Trophy className="w-5 h-5 text-amber-500" />
-                            </div>
-                            <h2 className="text-xl font-semibold text-white">Badges</h2>
+                        <div className="px-4 py-3 border-b border-white/[0.04] flex items-center gap-2">
+                            <Trophy className="w-4 h-4 text-amber-500" />
+                            <h2 className="text-sm font-semibold text-white">Badges</h2>
+                            <span className="ml-auto text-xs text-gray-500">{pilotBadges.length}</span>
                         </div>
-                        
-                        <div className="p-6">
+                        <div className="p-4">
                             {pilotBadges.length > 0 ? (
-                                <div className="grid grid-cols-3 gap-3">
-                                    {pilotBadges.map((badge, i) => (
-                                        <motion.div 
-                                            key={badge._id}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: 0.6 + i * 0.1 }}
-                                            className="bg-black/30 rounded-xl p-3 flex flex-col items-center border border-white/5 hover:border-amber-500/30 hover:scale-105 transition-all cursor-pointer group"
+                                <div className="grid grid-cols-3 gap-2">
+                                    {pilotBadges.map((badge) => (
+                                        <div 
+                                            key={badge._id} 
+                                            className="bg-black/30 rounded-lg p-2 flex flex-col items-center border border-white/[0.04] hover:border-amber-500/30 transition-all cursor-pointer group"
                                         >
                                             {badge.award_id?.imageUrl ? (
                                                 <img 
                                                     src={`/img/badge/${badge.award_id.imageUrl}`}
                                                     alt={badge.award_id?.name || 'Badge'}
-                                                    className="w-12 h-12 object-contain mb-2 group-hover:scale-110 transition-transform"
+                                                    className="w-10 h-10 object-contain mb-1 group-hover:scale-110 transition-transform"
                                                 />
                                             ) : (
-                                                <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mb-2 group-hover:bg-amber-500/20 transition-colors">
-                                                    <Medal className="w-6 h-6 text-amber-500" />
+                                                <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center mb-1">
+                                                    <Medal className="w-5 h-5 text-amber-500" />
                                                 </div>
                                             )}
-                                            <span className="text-[9px] text-gray-400 text-center font-medium truncate w-full">
+                                            <span className="text-[9px] text-gray-400 text-center truncate w-full">
                                                 {badge.award_id?.name || 'Badge'}
                                             </span>
-                                        </motion.div>
+                                        </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12">
-                                    <Trophy className="w-12 h-12 text-gray-700 mx-auto mb-3" />
-                                    <p className="text-gray-500 text-sm">No badges yet</p>
-                                    <p className="text-gray-600 text-xs mt-1">Complete tours to earn badges!</p>
+                                <div className="text-center py-8">
+                                    <Trophy className="w-10 h-10 text-gray-700 mx-auto mb-2" />
+                                    <p className="text-gray-500 text-xs">No badges yet</p>
                                 </div>
                             )}
                         </div>
                     </motion.div>
                 </div>
+
+                {/* Right Column - Recent Flights */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="lg:col-span-2 bg-[#0a0a0a] border border-white/[0.04] rounded-xl overflow-hidden"
+                >
+                    <div className="px-4 py-3 border-b border-white/[0.04] flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-amber-500" />
+                        <h2 className="text-sm font-semibold text-white">Recent Flights</h2>
+                        <span className="ml-auto text-xs text-gray-500">{flightHistory.length} flights</span>
+                    </div>
+                    
+                    <div className="divide-y divide-white/[0.04]">
+                        {flightHistory.length > 0 ? (
+                            flightHistory.slice(0, 10).map((flight, i) => (
+                                <motion.div
+                                    key={flight._id || i}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 + i * 0.05 }}
+                                    className="p-4 hover:bg-white/[0.02] transition-colors"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 flex-1">
+                                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                                                <Plane className="w-4 h-4 text-amber-500" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-mono font-semibold text-amber-500">{flight.departure_icao}</span>
+                                                    <ChevronRight className="w-3 h-3 text-gray-600" />
+                                                    <span className="text-sm font-mono font-semibold text-amber-500">{flight.arrival_icao}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-500">
+                                                    {flight.aircraft_type || '-'} • {flight.flight_time ? `${Math.floor(flight.flight_time / 60)}:${String(flight.flight_time % 60).padStart(2, '0')}` : '-'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-lg text-xs font-medium border ${
+                                            flight.status === 'Accepted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                            flight.status === 'Rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
+                                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                        }`}>
+                                            {flight.status === 'Accepted' && <Check className="w-3 h-3 inline mr-1" />}
+                                            {flight.status === 'Rejected' && <X className="w-3 h-3 inline mr-1" />}
+                                            {flight.status}
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="p-12 text-center">
+                                <Plane className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                                <p className="text-gray-500 text-sm">No flights recorded yet</p>
+                                <p className="text-gray-600 text-xs mt-1">Complete your first flight to see it here</p>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
