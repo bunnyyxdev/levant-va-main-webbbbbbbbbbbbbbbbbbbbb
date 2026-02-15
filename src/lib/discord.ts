@@ -8,12 +8,11 @@ const DISCORD_WEBHOOKS: Record<DiscordEvent, string> = {
     rankPromote:  process.env.DISCORD_WEBHOOK_RANK_PROMOTE  || '',
     award:        process.env.DISCORD_WEBHOOK_AWARD         || process.env.DISCORD_WEBHOOK_RANK_PROMOTE || '',
     errorLog:     process.env.DISCORD_WEBHOOK_ERROR_LOG     || '',
-    acarsRelease: process.env.DISCORD_WEBHOOK_ACARS_RELEASE || '',
     moderation:   process.env.DISCORD_MOD_WEBHOOK           || '',
     finance:      process.env.DISCORD_FINANCE_WEBHOOK       || '',
 };
 
-type DiscordEvent = 'takeoff' | 'landing' | 'rankPromote' | 'award' | 'errorLog' | 'acarsRelease' | 'moderation' | 'finance';
+type DiscordEvent = 'takeoff' | 'landing' | 'rankPromote' | 'award' | 'errorLog' | 'moderation' | 'finance';
 
 interface DiscordEmbed {
     title?: string;

@@ -50,8 +50,10 @@ jobs:
         shell: pwsh
         run: |
           @"
-          VITE_IVAO_CLIENT_ID=27821fb3-5158-4c5d-a061-4d4bc99575f2
-          VITE_IVAO_CLIENT_SECRET=5UO3O05aYIXCilVRpmLSC4k5AxFDwk0X
+          VITE_IVAO_CLIENT_ID=${{ secrets.IVAO_CLIENT_ID }}
+          VITE_IVAO_CLIENT_SECRET=${{ secrets.IVAO_CLIENT_SECRET }}
+          VITE_API_BASE_URL=${{ secrets.BASE_URL }}/api/acars
+          VITE_CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
           "@ | Set-Content LevantACARS/react-ui/.env
 
       - name: Build React
@@ -65,6 +67,37 @@ jobs:
           $dst = "LevantACARS/LevantACARS/wwwroot"
           if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
           Copy-Item $src $dst -Recurse
+
+      - name: Create default config.json template
+        shell: pwsh
+        run: |
+          $config = @{
+            api_base_url = "${{ secrets.BASE_URL }}/api/acars"
+            app_key = "${{ secrets.APP_KEY }}"
+            va_api_key = "LEVANTVIRTUALAIRLINE_WEBI_ACARS"
+            api_timeout = 15
+            ivao_client_id = "${{ secrets.IVAO_CLIENT_ID }}"
+            ivao_client_secret = "${{ secrets.IVAO_CLIENT_SECRET }}"
+            poll_interval_ms = 200
+            heartbeat_interval_ms = 30000
+            telemetry_buffer_interval = 4
+            position_update_interval = 5
+            discord_client_id = "${{ secrets.DISCORD_CLIENT_ID }}"
+            cloudinary_cloud_name = "${{ secrets.CLOUDINARY_CLOUD_NAME }}"
+            airportdb_api_token = "${{ secrets.AIRPORTDB_API_TOKEN }}"
+            log_level = "Information"
+            auth_token = $null
+            pilot_id = $null
+            pilot_name = $null
+            pilot_rank = $null
+            pilot_avatar = $null
+            pilot_hours = 0
+            pilot_xp = 0
+            weight_unit = "lbs"
+          }
+          $configJson = $config | ConvertTo-Json -Depth 10
+          $configJson | Set-Content "LevantACARS/LevantACARS/config.default.json"
+          Write-Host "Created config.default.json with production settings"
 
       # ── Generate favicon.ico from scratch (never stored in git) ─
       - name: Generate favicon.ico

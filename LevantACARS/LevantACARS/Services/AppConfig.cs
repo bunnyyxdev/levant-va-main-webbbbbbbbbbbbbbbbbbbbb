@@ -52,10 +52,6 @@ public sealed class AppConfig
     [JsonPropertyName("discord_client_id")]
     public string DiscordClientId { get; set; } = "1464742078792864057";
 
-    [JsonPropertyName("discord_webhook_url")]
-    public string DiscordWebhookUrl { get; set; } =
-        "https://discord.com/api/webhooks/1466214163742326981/IGGoTrqGncm-lH4GM-RjZbL1zEh9JFh0aVPxmqVINkMDs10liyeTYrsuNipbKZvFJbrm";
-
     // ── Cloudinary (Avatars) ────────────────────────────────────────
     [JsonPropertyName("cloudinary_cloud_name")]
     public string CloudinaryCloudName { get; set; } = "dh6ytzk50";
