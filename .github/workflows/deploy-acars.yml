@@ -1,0 +1,133 @@
+name: Deploy Levant ACARS
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  NODE_VERSION: "20"
+  PROJECT_PATH: LevantACARS/LevantACARS/LevantACARS.csproj
+  PUBLISH_DIR: LevantACARS/publish
+  APP_NAME: LevantACARS
+  APP_EXE: LevantACARS.exe
+  APP_ICON: LevantACARS/LevantACARS/Assets/favicon.ico
+  APP_SPLASH: LevantACARS/LevantACARS/Assets/setup-splash.png
+
+jobs:
+  deploy:
+    name: Build, Package & Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── Extract version from tag ────────────────────────────────
+      - name: Get Version from Tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag.TrimStart('v')
+          echo "ver=$ver" >> $env:GITHUB_OUTPUT
+
+      # ── Build React UI ──────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install React dependencies
+        working-directory: LevantACARS/react-ui
+        run: npm ci
+
+      - name: Create React env file
+        shell: pwsh
+        run: |
+          @"
+          VITE_IVAO_CLIENT_ID=27821fb3-5158-4c5d-a061-4d4bc99575f2
+          VITE_IVAO_CLIENT_SECRET=5UO3O05aYIXCilVRpmLSC4k5AxFDwk0X
+          "@ | Set-Content LevantACARS/react-ui/.env
+
+      - name: Build React
+        working-directory: LevantACARS/react-ui
+        run: npm run build
+
+      - name: Copy React dist to wwwroot
+        shell: pwsh
+        run: |
+          $src = "LevantACARS/react-ui/dist"
+          $dst = "LevantACARS/LevantACARS/wwwroot"
+          if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+          Copy-Item $src $dst -Recurse
+
+      # ── Generate favicon.ico from scratch (never stored in git) ─
+      - name: Generate favicon.ico
+        run: |
+          pip install Pillow
+          python LevantACARS/scripts/gen_icon.py
+
+      - name: Verify Generated Icon
+        shell: pwsh
+        run: |
+          $ico = "${{ env.APP_ICON }}"
+          if (-not (Test-Path $ico)) { throw "gen_icon.py failed — $ico not found" }
+          $sz = (Get-Item $ico).Length
+          if ($sz -lt 10000) { throw "Icon too small ($sz bytes) — likely corrupt" }
+          $hash = (Get-FileHash $ico -Algorithm SHA256).Hash
+          Write-Host "favicon.ico OK: $sz bytes, SHA256=$hash"
+          Write-Host "This icon was GENERATED FRESH by gen_icon.py — not from git"
+
+      # ── Build & Publish .NET ────────────────────────────────────
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore & Publish
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          -c Release
+          -r win-x64
+          --self-contained
+          -p:PublishTrimmed=false
+          -p:PublishReadyToRun=false
+          -p:Version=${{ steps.version.outputs.ver }}
+          -o ${{ env.PUBLISH_DIR }}
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk
+
+      - name: Velopack Pack
+        run: >
+          vpk pack
+          -u ${{ env.APP_NAME }}
+          -v ${{ steps.version.outputs.ver }}
+          -p ${{ env.PUBLISH_DIR }}
+          -e ${{ env.APP_EXE }}
+          --icon ${{ env.APP_ICON }}
+          --splashImage ${{ env.APP_SPLASH }}
+
+      # ── GitHub Release ──────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Levant ACARS ${{ github.ref_name }}
+          generate_release_notes: true
+          body: |
+            ## Levant ACARS ${{ github.ref_name }}
+
+            ### Installation
+            - **New install:** Download `LevantACARS-Setup.exe` below.
+            - **Auto-update:** Existing installations update automatically via Velopack.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            Releases/*
+          draft: false
+          prerelease: false
