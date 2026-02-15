@@ -51,6 +51,10 @@ module.exports = {
                     '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
             },
+            rotate: {
+                '120': '120deg',
+                '240': '240deg',
+            },
         },
     },
     plugins: [],
