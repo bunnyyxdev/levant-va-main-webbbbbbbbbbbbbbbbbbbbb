@@ -214,24 +214,19 @@ export async function POST(request: NextRequest) {
         }
 
         if (action === 'resetPassword') {
-            // Generate reset token
-            const token = uuidv4();
-            const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+            // Set default password instead of sending email
+            const defaultPassword = 'pleasechangenewpassword';
+            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-            // Delete any existing tokens for this email
-            await PasswordReset.deleteMany({ email: user.email });
+            // Update user password
+            user.password = hashedPassword;
+            await user.save();
 
-            // Create new reset token
-            await PasswordReset.create({
-                email: user.email,
-                token,
-                expires_at: expiresAt,
+            return NextResponse.json({ 
+                success: true, 
+                message: `Password reset to default: ${defaultPassword}`,
+                defaultPassword 
             });
-
-            // Send password reset email
-            await sendPasswordResetEmail(user.email, token);
-
-            return NextResponse.json({ success: true, message: 'Password reset email sent to user' });
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

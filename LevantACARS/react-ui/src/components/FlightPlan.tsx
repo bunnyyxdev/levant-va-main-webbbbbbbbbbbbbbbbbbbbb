@@ -206,16 +206,14 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
 
             {/* Action buttons: Submit + Cancel */}
             <div className="flex gap-2 mx-4 mb-3">
-              {flight.currentPhase === 'Landed' || flight.currentPhase === 'Arrived' || flight.currentPhase === 'Shutdown' ? (
-                <button
-                  onClick={submitFlight}
-                  className="flex-1 py-2.5 rounded-lg font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer border-none transition-all duration-300 hover:brightness-110 hover:shadow-lg hover:shadow-emerald-500/20"
-                  style={{ background: 'linear-gradient(135deg, #00d26a 0%, #00a854 100%)' }}
-                >
-                  <Shield size={14} className="text-dark-950" />
-                  <span className="text-dark-950">Submit PIREP</span>
-                </button>
-              ) : null}
+              <button
+                onClick={submitFlight}
+                className="flex-1 py-2.5 rounded-lg font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer border-none transition-all duration-300 hover:brightness-110 hover:shadow-lg hover:shadow-emerald-500/20"
+                style={{ background: 'linear-gradient(135deg, #00d26a 0%, #00a854 100%)' }}
+              >
+                <Shield size={14} className="text-dark-950" />
+                <span className="text-dark-950">End Flight</span>
+              </button>
               <button
                 onClick={cancelFlight}
                 className="px-4 py-2.5 rounded-lg font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all duration-200"
