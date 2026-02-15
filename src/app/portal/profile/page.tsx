@@ -17,8 +17,8 @@ interface Pilot {
     rank: string;
     country: string;
     timezone: string;
-    vatsim_id?: string;
-    ivao_id?: string;
+    vatsim_cid?: string;
+    ivao_vid?: string;
     simbrief_id?: string;
     avatar_url?: string;
     total_hours: number;
@@ -451,8 +451,8 @@ export default function ProfilePage() {
                                         {getCountryName(pilot.country)}
                                     </span>
                                 ) : 'Not set' },
-                                { label: 'VATSIM CID', value: pilot.vatsim_id || 'Not Provided', link: pilot.vatsim_id ? `https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_id}` : null },
-                                { label: 'IVAO VID', value: pilot.ivao_id || 'Not Provided', link: pilot.ivao_id ? `https://www.ivao.aero/Member.aspx?Id=${pilot.ivao_id}` : null },
+                                { label: 'VATSIM CID', value: pilot.vatsim_cid || 'Not Provided', link: pilot.vatsim_cid ? `https://stats.vatsim.net/search_id.php?id=${pilot.vatsim_cid}` : null },
+                                { label: 'IVAO VID', value: pilot.ivao_vid || 'Not Provided', link: pilot.ivao_vid ? `https://www.ivao.aero/Member.aspx?Id=${pilot.ivao_vid}` : null },
                                 { label: 'Routes Flown', value: (pilot.routes_flown?.length || 0).toString() },
                             ].map((item, i) => (
                                 <div key={i} className="flex justify-between items-center text-xs">
