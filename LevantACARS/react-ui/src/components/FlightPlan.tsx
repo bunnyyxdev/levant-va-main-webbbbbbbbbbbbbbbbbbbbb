@@ -365,7 +365,7 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
             <PlaneTakeoff size={11} className="text-amber-400" />
             <span className="text-[9px] font-bold text-amber-400 uppercase tracking-[0.2em]">Airborne — No Flight Plan</span>
           </div>
-          <p className="text-[9px] text-slate-600/70 font-mono tracking-wider">Altitude {Math.round(telemetry.altitude).toLocaleString()} FT detected — book a bid to begin tracking</p>
+          <p className="text-[9px] text-slate-600/70 font-mono tracking-wider">Altitude {Math.round(telemetry.altitude).toLocaleString()} FT detected — fetch SimBrief to begin tracking</p>
           <HoverBorderGradient
             onClick={() => {
               if (pilotId) {
@@ -389,10 +389,12 @@ export default function FlightPlan({ flight, telemetry, bid, pilotId, injectBid,
                     };
                     injectBid?.(bidData);
                     pushToast('success', `SimBrief loaded: ${bidData.departureIcao} → ${bidData.arrivalIcao}`);
+                  } else if (result.error) {
+                    pushToast('danger', result.error);
                   } else {
                     pushToast('info', 'No SimBrief flight plan found');
                   }
-                }).catch(() => pushToast('danger', 'Failed to reach server'));
+                }).catch(() => {});
               }
             }}
             disabled={!pilotId}
