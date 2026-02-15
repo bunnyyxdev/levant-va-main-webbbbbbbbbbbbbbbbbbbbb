@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plane, RefreshCw, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,6 +10,21 @@ export default function SimBriefPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<Msg>(null);
     const [bid, setBid] = useState<any>(null);
+    const [simbriefId, setSimbriefId] = useState<string | null>(null);
+    const [fetchingId, setFetchingId] = useState(true);
+
+    useEffect(() => {
+        // Fetch SimBrief ID from settings
+        fetch('/api/auth/me')
+            .then(res => res.json())
+            .then(data => {
+                if (data.user?.simbriefId) {
+                    setSimbriefId(data.user.simbriefId);
+                }
+            })
+            .catch(() => {})
+            .finally(() => setFetchingId(false));
+    }, []);
 
     const handleFetchSimBrief = async () => {
         setMessage(null);
