@@ -10,14 +10,25 @@ export async function POST(request: NextRequest) {
         await connectDB();
         
         const { simbriefId } = await request.json();
+        
+        console.log(`[Settings] Saving SimBrief ID for pilot ${session.id}:`, simbriefId);
 
-        await PilotModel.findByIdAndUpdate(session.id, { 
-            simbrief_id: simbriefId 
-        });
+        const updatedPilot = await PilotModel.findByIdAndUpdate(
+            session.id, 
+            { simbrief_id: simbriefId },
+            { new: true }
+        );
+        
+        if (!updatedPilot) {
+            console.error(`[Settings] Pilot not found with ID: ${session.id}`);
+            return NextResponse.json({ error: 'Pilot not found' }, { status: 404 });
+        }
+        
+        console.log(`[Settings] Successfully saved SimBrief ID ${simbriefId} for pilot ${updatedPilot.pilot_id}`);
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error('Save SimBrief ID error:', error);
+        console.error('[Settings] Save SimBrief ID error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
