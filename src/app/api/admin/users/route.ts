@@ -215,8 +215,8 @@ export async function POST(request: NextRequest) {
         }
 
         if (action === 'resetPassword') {
-            // Set default password instead of sending email
-            const defaultPassword = 'pleasechangenewpassword';
+            // Set temporary default password
+            const defaultPassword = 'pleasechangeyourpassword';
             const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
             // Update user password
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json({ 
                 success: true, 
-                message: `Password reset to default: ${defaultPassword}`,
+                message: `Password reset successfully. Temporary password: ${defaultPassword}`,
                 defaultPassword 
             });
         }
