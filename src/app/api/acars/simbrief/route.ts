@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
         }
 
         const simbriefId = pilot.simbrief_id;
+        console.log(`[SimBrief] Pilot ${pilotId} has SimBrief ID:`, simbriefId);
+        
         if (!simbriefId) {
             return NextResponse.json({ 
                 error: 'SimBrief ID not configured. Please add your SimBrief ID in Settings.',
@@ -27,26 +29,39 @@ export async function POST(request: NextRequest) {
         }
 
         // Fetch latest SimBrief OFP
-        const sbRes = await fetch(
-            `https://www.simbrief.com/api/xml.fetcher.php?userid=${simbriefId}&json=v2`,
-            { cache: 'no-store' }
-        );
+        const sbUrl = `https://www.simbrief.com/api/xml.fetcher.php?userid=${simbriefId}&json=v2`;
+        console.log(`[SimBrief] Fetching from:`, sbUrl);
+        
+        const sbRes = await fetch(sbUrl, { 
+            cache: 'no-store',
+            headers: {
+                'User-Agent': 'LevantVA-ACARS/1.0'
+            }
+        });
+
+        console.log(`[SimBrief] Response status:`, sbRes.status);
 
         if (!sbRes.ok) {
+            console.error(`[SimBrief] HTTP error ${sbRes.status} for SimBrief ID ${simbriefId}`);
             return NextResponse.json({ 
-                error: `Failed to fetch SimBrief flight plan (SimBrief ID: ${simbriefId})`,
+                error: `SimBrief API returned error ${sbRes.status}. Check your SimBrief ID: ${simbriefId}`,
                 simbriefId
             }, { status: 500 });
         }
 
         const sbData = await sbRes.json();
+        console.log(`[SimBrief] Response status from API:`, sbData?.fetch?.status);
 
         if (sbData?.fetch?.status !== 'Success') {
+            console.error(`[SimBrief] No flight plan found. Status:`, sbData?.fetch?.status);
             return NextResponse.json({ 
-                error: `No SimBrief flight plan found for SimBrief ID: ${simbriefId}. Please create a flight plan on SimBrief first.`,
-                simbriefId
+                error: `No SimBrief flight plan found for SimBrief ID: ${simbriefId}. Create a flight plan on SimBrief.com first.`,
+                simbriefId,
+                details: sbData?.fetch?.status || 'Unknown status'
             }, { status: 404 });
         }
+        
+        console.log(`[SimBrief] Successfully fetched flight plan: ${sbData.origin?.icao_code} → ${sbData.destination?.icao_code}`);
 
         // Extract flight plan data
         const flightPlan = {
