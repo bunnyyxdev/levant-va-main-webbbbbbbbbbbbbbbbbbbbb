@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - 'acars-*'
   workflow_dispatch:
 
 env:
@@ -33,8 +34,16 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $ver = $tag.TrimStart('v')
+          # Handle both 'v1.2.3' and 'acars-v1.2.3' formats
+          if ($tag -match '^acars-v(.+)$') {
+            $ver = $matches[1]
+          } elseif ($tag -match '^v(.+)$') {
+            $ver = $matches[1]
+          } else {
+            $ver = $tag
+          }
           echo "ver=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Extracted version: $ver from tag: $tag"
 
       # ── Build React UI ──────────────────────────────────────────
       - name: Setup Node.js
