@@ -187,9 +187,9 @@ export default function BookFlightPage() {
                                 <p className="text-white font-mono font-bold text-lg">{bid.aircraftType}</p>
                             </div>
                             {bid.route && (
-                                <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 space-y-1">
+                                <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 space-y-1 col-span-2">
                                     <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Route String</p>
-                                    <p className="text-white font-mono text-sm truncate">{bid.route}</p>
+                                    <p className="text-white font-mono text-sm whitespace-pre-wrap break-words">{bid.route}</p>
                                 </div>
                             )}
                         </div>
