@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import { Shadows_Into_Light_Two } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import SecurityProtector from '@/components/SecurityProtector';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
 
-const inter = Inter({
-    subsets: ['latin'],
-    variable: '--font-inter',
+const winkySans = localFont({
+    src: '../fonts/WinkySans.woff2',
+    variable: '--font-winky',
+    fallback: ['system-ui', 'sans-serif'],
 });
 
-const outfit = Outfit({
+const shadowsIntoLight = Shadows_Into_Light_Two({
+    weight: '400',
     subsets: ['latin'],
-    variable: '--font-outfit',
+    variable: '--font-shadows',
 });
 
 export const metadata: Metadata = {
@@ -34,7 +37,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${inter.variable} ${outfit.variable}`} data-scroll-behavior="smooth">
+        <html lang="en" className={`${winkySans.variable} ${shadowsIntoLight.variable}`} data-scroll-behavior="smooth">
             <head>
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
             </head>

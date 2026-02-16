@@ -21,7 +21,7 @@
   }
 
   body {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: var(--font-winky), system-ui, sans-serif;
     background: #0f0f0f;
     color: white;
     min-height: 100vh;

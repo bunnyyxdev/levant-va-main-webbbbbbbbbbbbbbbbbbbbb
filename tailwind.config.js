@@ -33,8 +33,8 @@ module.exports = {
                 }
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
-                display: ['Outfit', 'system-ui', 'sans-serif'],
+                sans: ['Winky Sans', 'system-ui', 'sans-serif'],
+                display: ['Shadows Into Light Two', 'cursive', 'sans-serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-in-out',
