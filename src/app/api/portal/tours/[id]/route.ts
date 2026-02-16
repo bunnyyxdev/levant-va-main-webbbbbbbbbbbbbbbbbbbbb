@@ -14,6 +14,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         const tour = await Tour.findById(id);
         if (!tour) return NextResponse.json({ error: 'Tour not found' }, { status: 404 });
 
+        const now = new Date();
+        if (!tour.active) {
+            return NextResponse.json({ error: 'Tour unavailable' }, { status: 404 });
+        }
+        if (tour.start_date && new Date(tour.start_date) > now) {
+            return NextResponse.json({ error: 'Tour not started yet' }, { status: 403 });
+        }
+        if (tour.end_date && new Date(tour.end_date) < now) {
+            return NextResponse.json({ error: 'Tour has ended' }, { status: 403 });
+        }
+
         let progress = null;
         if (session) {
             progress = await TourProgress.findOne({ pilot_id: session.id, tour_id: id });
@@ -45,8 +56,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
         // Verify Tour Exists
         const tour = await Tour.findById(id);
-        if (!tour || !tour.is_active) {
+        if (!tour || !tour.active) {
             return NextResponse.json({ error: 'Tour unavailable' }, { status: 404 });
+        }
+
+        const now = new Date();
+        if (tour.start_date && new Date(tour.start_date) > now) {
+            return NextResponse.json({ error: 'Tour not started yet' }, { status: 403 });
+        }
+        if (tour.end_date && new Date(tour.end_date) < now) {
+            return NextResponse.json({ error: 'Tour has ended' }, { status: 403 });
         }
 
         // Check if already joined

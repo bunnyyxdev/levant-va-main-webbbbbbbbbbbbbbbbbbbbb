@@ -9,7 +9,14 @@ export async function GET() {
         const session = await verifyAuth(); // Optional: If public, remove this. But we need it for progress check.
         await connectDB();
 
-        const tours = await Tour.find({ active: true }).lean();
+        const now = new Date();
+        const tours = await Tour.find({
+            active: true,
+            $and: [
+                { $or: [{ start_date: { $exists: false } }, { start_date: null }, { start_date: { $lte: now } }] },
+                { $or: [{ end_date: { $exists: false } }, { end_date: null }, { end_date: { $gte: now } }] },
+            ],
+        }).lean();
         
         // Fetch user progress for all tours if logged in
         let progressMap: Record<string, any> = {};
