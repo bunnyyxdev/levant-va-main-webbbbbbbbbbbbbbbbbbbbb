@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Name, description, and at least one leg are required' }, { status: 400 });
         }
 
-        // Calculate total distance (approximate)
+        // Calculate total distance
         const totalDistance = legs.reduce((sum: number, leg: any) => sum + (leg.distance_nm || 0), 0);
 
         const tour = await Tour.create({
@@ -63,9 +63,11 @@ export async function POST(request: NextRequest) {
                 arrival_icao: leg.arrival_icao.toUpperCase(),
                 distance_nm: leg.distance_nm || 0,
             })),
+            total_distance: totalDistance,
             reward_credits: rewardCredits || 0,
-            reward_badge_id: rewardBadge,
+            reward_badge: rewardBadge || undefined,
             difficulty: difficulty || 'medium',
+            active: true,
         });
 
         return NextResponse.json({ success: true, tour });
@@ -87,18 +89,29 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, ...updates } = body;
+        const { id, name, description, legs, rewardCredits, rewardBadge, difficulty, active } = body;
 
-        if (updates.legs) {
-            updates.legs = updates.legs.map((leg: any, i: number) => ({
+        const updateData: any = {};
+        
+        if (name !== undefined) updateData.name = name;
+        if (description !== undefined) updateData.description = description;
+        if (difficulty !== undefined) updateData.difficulty = difficulty;
+        if (rewardCredits !== undefined) updateData.reward_credits = rewardCredits;
+        if (rewardBadge !== undefined) updateData.reward_badge = rewardBadge;
+        if (active !== undefined) updateData.active = active;
+        
+        if (legs) {
+            updateData.legs = legs.map((leg: any, i: number) => ({
                 leg_number: i + 1,
                 departure_icao: leg.departure_icao.toUpperCase(),
                 arrival_icao: leg.arrival_icao.toUpperCase(),
                 distance_nm: leg.distance_nm || 0,
             }));
+            // Recalculate total distance
+            updateData.total_distance = legs.reduce((sum: number, leg: any) => sum + (leg.distance_nm || 0), 0);
         }
 
-        await Tour.findByIdAndUpdate(id, updates);
+        await Tour.findByIdAndUpdate(id, updateData);
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
