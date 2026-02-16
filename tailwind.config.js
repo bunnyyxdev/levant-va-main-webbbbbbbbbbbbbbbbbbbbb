@@ -33,8 +33,9 @@ module.exports = {
                 }
             },
             fontFamily: {
-                sans: ['Winky Sans', 'system-ui', 'sans-serif'],
-                display: ['Shadows Into Light Two', 'cursive', 'sans-serif'],
+                sans: ['var(--font-winky)', 'var(--font-manrope)', 'system-ui', 'sans-serif'],
+                display: ['var(--font-shadows)', 'cursive', 'sans-serif'],
+                manrope: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-in-out',
