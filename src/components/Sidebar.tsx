@@ -83,7 +83,7 @@ export default function Sidebar() {
             items: [
                 { name: 'Book Flight', path: '/portal/simbrief', icon: Plane },
                 { name: 'My Reports', path: '/portal/reports', icon: FileText },
-                { name: 'Tours & Events', path: '/portal/activities', icon: Map },
+                { name: 'Tours', path: '/portal/tours', icon: Map },
                 { name: 'Leaderboard', path: '/portal/leaderboard', icon: Trophy },
                 { name: 'Downloads', path: '/portal/downloads', icon: Download },
             ],
@@ -111,6 +111,7 @@ export default function Sidebar() {
             label: 'Content',
             items: [
                 { name: 'Tour Management', path: '/portal/admin/tours', icon: Map },
+                { name: 'Tour Validation', path: '/portal/admin/tour-validation', icon: Award },
                 { name: 'Award Management', path: '/portal/admin/badges', icon: Award },
                 { name: 'Store Management', path: '/portal/admin/store', icon: ShoppingBag },
                 { name: 'Livery Management', path: '/portal/admin/liveries', icon: Paintbrush },
