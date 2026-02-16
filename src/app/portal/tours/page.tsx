@@ -160,16 +160,28 @@ export default function ToursPage() {
                         />
                     </div>
 
-                    <select
-                        value={difficulty}
-                        onChange={(e) => setDifficulty(e.target.value as any)}
-                        className="w-full px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
-                    >
-                        <option value="all">All Difficulties</option>
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
+                    <div className="w-full p-1 rounded-xl bg-white/5 border border-white/10 flex">
+                        {(
+                            [
+                                { key: 'all', label: 'All' },
+                                { key: 'easy', label: 'Easy' },
+                                { key: 'medium', label: 'Medium' },
+                                { key: 'hard', label: 'Hard' },
+                            ] as const
+                        ).map((d) => (
+                            <button
+                                key={d.key}
+                                onClick={() => setDifficulty(d.key)}
+                                className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+                                    difficulty === d.key
+                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            >
+                                {d.label}
+                            </button>
+                        ))}
+                    </div>
 
                     <div className="text-xs text-gray-500 flex items-center justify-between px-3 py-3 rounded-xl bg-white/5 border border-white/10">
                         <span className="uppercase tracking-widest font-bold">Loaded</span>

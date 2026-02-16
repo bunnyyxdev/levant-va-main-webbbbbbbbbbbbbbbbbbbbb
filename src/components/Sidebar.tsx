@@ -28,6 +28,7 @@ import {
     Paintbrush,
     ChevronDown,
     BarChart3,
+    Calendar,
 } from 'lucide-react';
 
 interface MenuItem {
@@ -84,6 +85,7 @@ export default function Sidebar() {
                 { name: 'Book Flight', path: '/portal/simbrief', icon: Plane },
                 { name: 'My Reports', path: '/portal/reports', icon: FileText },
                 { name: 'Tours', path: '/portal/tours', icon: Map },
+                { name: 'Events', path: '/portal/events', icon: Calendar },
                 { name: 'Leaderboard', path: '/portal/leaderboard', icon: Trophy },
                 { name: 'Downloads', path: '/portal/downloads', icon: Download },
             ],
@@ -112,6 +114,7 @@ export default function Sidebar() {
             items: [
                 { name: 'Tour Management', path: '/portal/admin/tours', icon: Map },
                 { name: 'Tour Validation', path: '/portal/admin/tour-validation', icon: Award },
+                { name: 'Event Management', path: '/portal/admin/events', icon: Calendar },
                 { name: 'Award Management', path: '/portal/admin/badges', icon: Award },
                 { name: 'Store Management', path: '/portal/admin/store', icon: ShoppingBag },
                 { name: 'Livery Management', path: '/portal/admin/liveries', icon: Paintbrush },
