@@ -92,6 +92,14 @@
 }
 
 @font-face {
+  font-family: 'Sour Gummy';
+  src: url('https://fonts.googleapis.com/css2?family=Sour+Gummy:wght@400;500;600;700&display=swap');
+  font-weight: 400 500 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Shadows Into Light Two';
   src: url('https://fonts.googleapis.com/css2?family=Shadows+Into+Light+Two&display=swap');
   font-weight: 400;

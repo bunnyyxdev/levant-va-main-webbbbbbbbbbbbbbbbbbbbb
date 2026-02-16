@@ -20,7 +20,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Winky Sans', 'Manrope', 'system-ui', 'sans-serif'],
+        sans: ['Winky Sans', 'Manrope', 'Sour Gummy', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
         display: ['Shadows Into Light Two', 'cursive', 'sans-serif'],
       },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Shadows_Into_Light_Two, Manrope } from 'next/font/google';
+import { Shadows_Into_Light_Two, Manrope, Sour_Gummy } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import SecurityProtector from '@/components/SecurityProtector';
@@ -48,6 +48,11 @@ const manrope = Manrope({
     variable: '--font-manrope',
 });
 
+const sourGummy = Sour_Gummy({
+    subsets: ['latin'],
+    variable: '--font-sour-gummy',
+});
+
 const shadowsIntoLight = Shadows_Into_Light_Two({
     weight: '400',
     subsets: ['latin'],
@@ -73,7 +78,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${winkySans.variable} ${manrope.variable} ${shadowsIntoLight.variable}`} data-scroll-behavior="smooth">
+        <html lang="en" className={`${winkySans.variable} ${manrope.variable} ${sourGummy.variable} ${shadowsIntoLight.variable}`} data-scroll-behavior="smooth">
             <head>
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
             </head>

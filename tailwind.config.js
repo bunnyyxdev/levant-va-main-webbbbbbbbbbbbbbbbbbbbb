@@ -33,7 +33,7 @@ module.exports = {
                 }
             },
             fontFamily: {
-                sans: ['var(--font-winky)', 'var(--font-manrope)', 'system-ui', 'sans-serif'],
+                sans: ['var(--font-winky)', 'var(--font-manrope)', 'Sour Gummy', 'system-ui', 'sans-serif'],
                 display: ['var(--font-shadows)', 'cursive', 'sans-serif'],
                 manrope: ['var(--font-manrope)', 'system-ui', 'sans-serif'],
             },
