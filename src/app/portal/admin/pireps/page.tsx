@@ -36,7 +36,6 @@ export default function AdminPirepsPage() {
     const [selectedPirep, setSelectedPirep] = useState<PIREP | null>(null);
     const [adminComment, setAdminComment] = useState('');
     const [processing, setProcessing] = useState(false);
-    const [manualOnly, setManualOnly] = useState(false);
     const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
     useEffect(() => {
@@ -118,10 +117,9 @@ export default function AdminPirepsPage() {
         return pireps.filter(p => {
             const matchesSearch = p.callsign.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 p.pilot_name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesManual = manualOnly ? p.is_manual : true;
-            return matchesSearch && matchesManual;
+            return matchesSearch;
         });
-    }, [pireps, searchTerm, manualOnly]);
+    }, [pireps, searchTerm]);
 
     return (
         <div className="space-y-6">
@@ -146,19 +144,6 @@ export default function AdminPirepsPage() {
                             {s.toUpperCase()}
                         </button>
                     ))}
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setManualOnly(!manualOnly)}
-                        className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border ${
-                            manualOnly
-                                ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                                : 'bg-[#111] border-white/[0.06] text-gray-400 hover:text-white'
-                        }`}
-                    >
-                        <AlertTriangle size={12} />
-                        Manual Only
-                    </button>
                 </div>
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
