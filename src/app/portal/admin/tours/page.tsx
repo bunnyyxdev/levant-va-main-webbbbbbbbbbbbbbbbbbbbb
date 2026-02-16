@@ -34,7 +34,16 @@ export default function AdminToursPage() {
     const [image, setImage] = useState('');
     const [banner, setBanner] = useState('');
     const [awardImage, setAwardImage] = useState('');
+    const [startDateZulu, setStartDateZulu] = useState('');
+    const [endDateZulu, setEndDateZulu] = useState('');
     const [legs, setLegs] = useState<TourLeg[]>([{ departure_icao: '', arrival_icao: '', distance_nm: 0 }]);
+
+    const toZuluInputValue = (d?: any) => {
+        if (!d) return '';
+        const date = new Date(d);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().slice(0, 16);
+    };
 
     const fetchTours = () => {
         setLoading(true);
@@ -53,6 +62,8 @@ export default function AdminToursPage() {
         setImage('');
         setBanner('');
         setAwardImage('');
+        setStartDateZulu('');
+        setEndDateZulu('');
         setLegs([{ departure_icao: '', arrival_icao: '', distance_nm: 0 }]);
         setEditing(null);
         setUploading({ image: false, banner: false, award: false });
@@ -70,6 +81,8 @@ export default function AdminToursPage() {
         setImage((tour as any).image || '');
         setBanner((tour as any).banner || '');
         setAwardImage((tour as any).award_image || '');
+        setStartDateZulu(toZuluInputValue((tour as any).start_date));
+        setEndDateZulu(toZuluInputValue((tour as any).end_date));
         setLegs(tour.legs.map(l => ({
             departure_icao: l.departure_icao,
             arrival_icao: l.arrival_icao,
@@ -147,6 +160,8 @@ export default function AdminToursPage() {
                 image: image || undefined,
                 banner: banner || undefined,
                 awardImage: awardImage || undefined,
+                startDate: startDateZulu ? new Date(startDateZulu + ':00.000Z').toISOString() : null,
+                endDate: endDateZulu ? new Date(endDateZulu + ':00.000Z').toISOString() : null,
                 legs,
             };
 
@@ -284,6 +299,30 @@ export default function AdminToursPage() {
                                     className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
                                 />
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Start Date (Zulu / UTC)</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={startDateZulu}
+                                        onChange={(e) => setStartDateZulu(e.target.value)}
+                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
+                                    />
+                                    <p className="text-[11px] text-gray-500 mt-1">Stored in UTC (Zulu time).</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">End Date (Zulu / UTC)</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={endDateZulu}
+                                        onChange={(e) => setEndDateZulu(e.target.value)}
+                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
+                                    />
+                                    <p className="text-[11px] text-gray-500 mt-1">Leave empty for no end date.</p>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label className="block text-sm text-gray-400">Tour Image</label>

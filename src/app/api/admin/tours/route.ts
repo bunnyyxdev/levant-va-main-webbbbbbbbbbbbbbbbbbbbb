@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, description, image, banner, awardImage, legs } = body;
+        const { name, description, image, banner, awardImage, startDate, endDate, legs } = body;
 
         if (!name || !description || !legs?.length) {
             return NextResponse.json({ error: 'Name, description, and at least one leg are required' }, { status: 400 });
@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
             image: image || undefined,
             banner: banner || undefined,
             award_image: awardImage || undefined,
+            start_date: startDate ? new Date(startDate) : undefined,
+            end_date: endDate ? new Date(endDate) : undefined,
             legs: legs.map((leg: any, i: number) => ({
                 leg_number: i + 1,
                 departure_icao: leg.departure_icao.toUpperCase(),
@@ -89,7 +91,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, name, description, image, banner, awardImage, legs, active } = body;
+        const { id, name, description, image, banner, awardImage, startDate, endDate, legs, active } = body;
 
         const updateData: any = {};
         
@@ -98,6 +100,8 @@ export async function PUT(request: NextRequest) {
         if (image !== undefined) updateData.image = image;
         if (banner !== undefined) updateData.banner = banner;
         if (awardImage !== undefined) updateData.award_image = awardImage;
+        if (startDate !== undefined) updateData.start_date = startDate ? new Date(startDate) : null;
+        if (endDate !== undefined) updateData.end_date = endDate ? new Date(endDate) : null;
         if (active !== undefined) updateData.active = active;
         
         if (legs) {
