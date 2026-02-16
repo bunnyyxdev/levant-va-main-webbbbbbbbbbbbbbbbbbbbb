@@ -9,22 +9,42 @@ export async function GET() {
         const session = await verifyAuth(); // Optional: If public, remove this. But we need it for progress check.
         await connectDB();
 
-        const tours = await Tour.find({ is_active: true }).lean();
+        const tours = await Tour.find({ active: true }).lean();
         
         // Fetch user progress for all tours if logged in
         let progressMap: Record<string, any> = {};
         if (session) {
             const progressList = await TourProgress.find({ pilot_id: session.id }).lean();
             progressList.forEach((p: any) => {
-                progressMap[p.tour_id] = p;
+                progressMap[p.tour_id?.toString?.() || String(p.tour_id)] = p;
             });
         }
 
-        const enrichedTours = tours.map((t: any) => ({
-            ...t,
-            user_status: progressMap[t._id.toString()]?.status || 'Not Started',
-            legs_completed: progressMap[t._id.toString()]?.current_leg_index || 0
-        }));
+        const enrichedTours = tours.map((t: any) => {
+            const p = progressMap[t._id.toString()];
+
+            const completedLegs = Array.isArray(p?.completed_legs)
+                ? p.completed_legs.length
+                : typeof p?.current_leg === 'number'
+                    ? p.current_leg
+                    : 0;
+
+            const totalLegs = Array.isArray(t?.legs) ? t.legs.length : 0;
+            const completed = totalLegs > 0 && completedLegs >= totalLegs;
+
+            return {
+                ...t,
+                userProgress: {
+                    completed,
+                    completedLegs,
+                    totalLegs,
+                },
+
+                // Legacy fields (kept for any older UI pieces)
+                user_status: completed ? 'Completed' : p ? 'In Progress' : 'Not Started',
+                legs_completed: completedLegs,
+            };
+        });
 
         return NextResponse.json({ tours: enrichedTours });
 
