@@ -7,7 +7,38 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
 
 const winkySans = localFont({
-    src: '../fonts/WinkySans.woff2',
+    src: [
+        {
+            path: '../fonts/WinkySans-Regular.ttf',
+            weight: '400',
+            style: 'normal',
+        },
+        {
+            path: '../fonts/WinkySans-Medium.ttf',
+            weight: '500',
+            style: 'normal',
+        },
+        {
+            path: '../fonts/WinkySans-SemiBold.ttf',
+            weight: '600',
+            style: 'normal',
+        },
+        {
+            path: '../fonts/WinkySans-Bold.ttf',
+            weight: '700',
+            style: 'normal',
+        },
+        {
+            path: '../fonts/WinkySans-ExtraBold.ttf',
+            weight: '800',
+            style: 'normal',
+        },
+        {
+            path: '../fonts/WinkySans-Black.ttf',
+            weight: '900',
+            style: 'normal',
+        },
+    ],
     variable: '--font-winky',
     fallback: ['system-ui', 'sans-serif'],
 });
