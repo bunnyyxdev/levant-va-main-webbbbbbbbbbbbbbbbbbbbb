@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Edit, Eye, Clock, Award } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TourReportLeg {
     leg_number: number;
@@ -86,12 +87,12 @@ export default function TourValidationPage() {
         if (!selectedReport || !action) return;
 
         if (action === 'reject' && !adminNotes.trim()) {
-            alert('Admin notes are required for rejection');
+            toast.error('Admin notes are required for rejection');
             return;
         }
 
         if (action === 'modify' && !modificationNotes.trim()) {
-            alert('Modification notes are required');
+            toast.error('Modification notes are required');
             return;
         }
 
@@ -110,14 +111,15 @@ export default function TourValidationPage() {
 
             if (res.ok) {
                 setShowModal(false);
+                toast.success('Report updated successfully');
                 fetchReports();
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to process report');
+                toast.error(data.error || 'Failed to process report');
             }
         } catch (error) {
             console.error('Failed to process report:', error);
-            alert('Network error');
+            toast.error('Network error');
         } finally {
             setProcessing(false);
         }

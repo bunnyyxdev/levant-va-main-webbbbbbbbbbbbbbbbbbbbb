@@ -1,10 +1,39 @@
 'use client';
 
-import { Shield, CheckCircle, XCircle, AlertTriangle, BookOpen } from 'lucide-react';
+import Link from 'next/link';
+import Footer from '@/components/Footer';
+import { ArrowLeft, Shield, CheckCircle, XCircle, AlertTriangle, BookOpen } from 'lucide-react';
 
 export default function TourRulesPage() {
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="space-y-10">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex items-center justify-between bg-[#0a0a0a] border border-white/[0.08] rounded-2xl px-4 py-3">
+                    <Link href="/portal/tours" className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Tours
+                    </Link>
+                    <div className="text-xs font-bold uppercase tracking-[0.25em] text-gray-500">Tour Rules</div>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/portal/tours"
+                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-all"
+                        >
+                            View Tours
+                        </Link>
+                        <a
+                            href="https://discord.levant-va.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all"
+                        >
+                            Discord
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-8">
             {/* Header */}
             <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mx-auto shadow-lg shadow-cyan-500/20">
@@ -182,6 +211,9 @@ export default function TourRulesPage() {
                 <p>These rules are subject to change. Last updated: {new Date().toLocaleDateString()}</p>
                 <p className="mt-2">For questions or clarifications, please contact staff via Discord.</p>
             </div>
+            </div>
+
+            <Footer />
         </div>
     );
 }

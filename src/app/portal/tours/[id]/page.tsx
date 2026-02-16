@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Check, X, Plane, MapPin, AlertCircle, Loader2, Award, Send, CheckCircle, Clock, ArrowLeft, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function TourDetailPage() {
     const params = useParams();
@@ -57,14 +58,14 @@ export default function TourDetailPage() {
             
             const data = await res.json();
             if (res.ok) {
-                alert(`Report submitted! ${data.report.completed_legs}/${data.report.total_legs} legs verified.`);
+                toast.success(`Report submitted! ${data.report.completed_legs}/${data.report.total_legs} legs verified.`);
                 setShowSubmitModal(false);
                 window.location.reload();
             } else {
-                alert(data.error || 'Failed to submit report');
+                toast.error(data.error || 'Failed to submit report');
             }
         } catch (error) {
-            alert('Network error');
+            toast.error('Network error');
         } finally {
             setSubmitting(false);
         }

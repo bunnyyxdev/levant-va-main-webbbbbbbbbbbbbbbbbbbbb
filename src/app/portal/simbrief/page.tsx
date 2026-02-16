@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plane, RefreshCw, CheckCircle, AlertCircle, Loader2, XCircle, Calendar, MapPin, Settings2, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 type Msg = { type: 'success' | 'error'; text: string } | null;
 
@@ -47,11 +48,14 @@ export default function BookFlightPage() {
                     type: 'success', 
                     text: `Flight plan loaded successfully! Open ACARS to begin your flight.` 
                 });
+                toast.success('Flight plan loaded successfully');
             } else {
                 setMessage({ type: 'error', text: data.error || 'Failed to fetch SimBrief' });
+                toast.error(data.error || 'Failed to fetch SimBrief');
             }
         } catch {
             setMessage({ type: 'error', text: 'Network error. Please try again.' });
+            toast.error('Network error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -74,11 +78,14 @@ export default function BookFlightPage() {
                 setBid(null);
                 setHasActiveFlight(false);
                 setMessage({ type: 'success', text: 'Flight cancelled successfully.' });
+                toast.success('Flight cancelled successfully');
             } else {
-                setMessage({ type: 'error', text: data.error || 'Failed to cancel flight' });
+                setMessage({ type: 'error', text: data?.error || 'Failed to cancel flight.' });
+                toast.error(data?.error || 'Failed to cancel flight');
             }
         } catch {
             setMessage({ type: 'error', text: 'Network error. Please try again.' });
+            toast.error('Network error. Please try again.');
         } finally {
             setCancelling(false);
         }
