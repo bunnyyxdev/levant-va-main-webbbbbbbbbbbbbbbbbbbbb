@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Map, Users, X, Award } from 'lucide-react';
+import { Plus, Edit, Trash2, Map, Users, X, Upload, Loader2 } from 'lucide-react';
 
 interface TourLeg {
     departure_icao: string;
@@ -15,9 +15,6 @@ interface Tour {
     description: string;
     legs: TourLeg[];
     total_distance: number;
-    reward_credits: number;
-    reward_badge?: string;
-    difficulty: 'easy' | 'medium' | 'hard';
     active: boolean;
     participants?: number;
     completed?: number;
@@ -29,6 +26,7 @@ export default function AdminToursPage() {
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Tour | null>(null);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState<{ image: boolean; banner: boolean; award: boolean }>({ image: false, banner: false, award: false });
 
     // Form state
     const [name, setName] = useState('');
@@ -36,9 +34,6 @@ export default function AdminToursPage() {
     const [image, setImage] = useState('');
     const [banner, setBanner] = useState('');
     const [awardImage, setAwardImage] = useState('');
-    const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-    const [rewardCredits, setRewardCredits] = useState('');
-    const [rewardBadge, setRewardBadge] = useState('');
     const [legs, setLegs] = useState<TourLeg[]>([{ departure_icao: '', arrival_icao: '', distance_nm: 0 }]);
 
     const fetchTours = () => {
@@ -58,11 +53,9 @@ export default function AdminToursPage() {
         setImage('');
         setBanner('');
         setAwardImage('');
-        setDifficulty('medium');
-        setRewardCredits('');
-        setRewardBadge('');
         setLegs([{ departure_icao: '', arrival_icao: '', distance_nm: 0 }]);
         setEditing(null);
+        setUploading({ image: false, banner: false, award: false });
     };
 
     const openNew = () => {
@@ -77,15 +70,45 @@ export default function AdminToursPage() {
         setImage((tour as any).image || '');
         setBanner((tour as any).banner || '');
         setAwardImage((tour as any).award_image || '');
-        setDifficulty(tour.difficulty);
-        setRewardCredits(tour.reward_credits.toString());
-        setRewardBadge(tour.reward_badge || '');
         setLegs(tour.legs.map(l => ({
             departure_icao: l.departure_icao,
             arrival_icao: l.arrival_icao,
             distance_nm: l.distance_nm || 0,
         })));
         setShowModal(true);
+    };
+
+    const uploadTourImage = async (file: File, kind: 'image' | 'banner' | 'award') => {
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        setUploading(prev => ({ ...prev, [kind]: true }));
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('name', `${name || 'tour'}_${kind}`);
+
+            const res = await fetch('/api/cloudinary/tour-upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.url) {
+                throw new Error(data.error || 'Upload failed');
+            }
+
+            if (kind === 'image') setImage(data.url);
+            if (kind === 'banner') setBanner(data.url);
+            if (kind === 'award') setAwardImage(data.url);
+        } catch (err: any) {
+            console.error('Tour image upload failed:', err);
+            alert(err.message || 'Upload failed');
+        } finally {
+            setUploading(prev => ({ ...prev, [kind]: false }));
+        }
     };
 
     const addLeg = () => {
@@ -124,9 +147,6 @@ export default function AdminToursPage() {
                 image: image || undefined,
                 banner: banner || undefined,
                 awardImage: awardImage || undefined,
-                difficulty,
-                rewardCredits: parseInt(rewardCredits) || 0,
-                rewardBadge: rewardBadge || undefined,
                 legs,
             };
 
@@ -191,8 +211,6 @@ export default function AdminToursPage() {
                             <tr>
                                 <th className="text-left p-4 text-gray-400 font-medium">Tour</th>
                                 <th className="text-left p-4 text-gray-400 font-medium">Legs</th>
-                                <th className="text-left p-4 text-gray-400 font-medium">Difficulty</th>
-                                <th className="text-left p-4 text-gray-400 font-medium">Reward</th>
                                 <th className="text-left p-4 text-gray-400 font-medium">Participants</th>
                                 <th className="text-left p-4 text-gray-400 font-medium">Status</th>
                                 <th className="text-right p-4 text-gray-400 font-medium">Actions</th>
@@ -206,16 +224,6 @@ export default function AdminToursPage() {
                                         <p className="text-gray-500 text-sm">{tour.total_distance} nm</p>
                                     </td>
                                     <td className="p-4 text-white">{tour.legs.length}</td>
-                                    <td className="p-4">
-                                        <span className={`text-xs px-2 py-1 rounded uppercase ${
-                                            tour.difficulty === 'easy' ? 'bg-green-500/30 text-green-300' :
-                                            tour.difficulty === 'hard' ? 'bg-red-500/30 text-red-300' :
-                                            'bg-yellow-500/30 text-yellow-300'
-                                        }`}>
-                                            {tour.difficulty}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-accent-gold">{tour.reward_credits} credits</td>
                                     <td className="p-4">
                                         <div className="flex items-center gap-1 text-gray-400">
                                             <Users className="w-4 h-4" />
@@ -276,69 +284,86 @@ export default function AdminToursPage() {
                                     className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
                                 />
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Tour Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={image}
-                                        onChange={e => setImage(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
-                                    />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label className="block text-sm text-gray-400">Tour Image</label>
+                                    <div className="bg-[#111] border border-white/[0.08] rounded-xl p-3 space-y-3">
+                                        <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-black/30 border border-white/10 flex items-center justify-center">
+                                            {image ? (
+                                                <img src={image} alt="Tour" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-gray-600">No image</span>
+                                            )}
+                                        </div>
+                                        <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-gray-200 cursor-pointer">
+                                            {uploading.image ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                            {uploading.image ? 'Uploading...' : 'Upload'}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploading.image}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) uploadTourImage(f, 'image');
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Banner Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={banner}
-                                        onChange={e => setBanner(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
-                                    />
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm text-gray-400">Banner Image</label>
+                                    <div className="bg-[#111] border border-white/[0.08] rounded-xl p-3 space-y-3">
+                                        <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-black/30 border border-white/10 flex items-center justify-center">
+                                            {banner ? (
+                                                <img src={banner} alt="Banner" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-gray-600">No banner</span>
+                                            )}
+                                        </div>
+                                        <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-gray-200 cursor-pointer">
+                                            {uploading.banner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                            {uploading.banner ? 'Uploading...' : 'Upload'}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploading.banner}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) uploadTourImage(f, 'banner');
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Award Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={awardImage}
-                                        onChange={e => setAwardImage(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Difficulty</label>
-                                    <select
-                                        value={difficulty}
-                                        onChange={e => setDifficulty(e.target.value as any)}
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
-                                    >
-                                        <option value="easy">Easy</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="hard">Hard</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Reward Credits</label>
-                                    <input
-                                        type="number"
-                                        value={rewardCredits}
-                                        onChange={e => setRewardCredits(e.target.value)}
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">Badge (emoji)</label>
-                                    <input
-                                        type="text"
-                                        value={rewardBadge}
-                                        onChange={e => setRewardBadge(e.target.value)}
-                                        placeholder="🏆"
-                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
-                                    />
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm text-gray-400">Award Image</label>
+                                    <div className="bg-[#111] border border-white/[0.08] rounded-xl p-3 space-y-3">
+                                        <div className="w-full aspect-[16/9] rounded-lg overflow-hidden bg-black/30 border border-white/10 flex items-center justify-center">
+                                            {awardImage ? (
+                                                <img src={awardImage} alt="Award" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-gray-600">No award</span>
+                                            )}
+                                        </div>
+                                        <label className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-gray-200 cursor-pointer">
+                                            {uploading.award ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                            {uploading.award ? 'Uploading...' : 'Upload'}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                disabled={uploading.award}
+                                                onChange={(e) => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) uploadTourImage(f, 'award');
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 

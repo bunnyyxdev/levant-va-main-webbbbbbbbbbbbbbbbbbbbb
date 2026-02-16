@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, description, image, banner, awardImage, legs, rewardCredits, rewardBadge, difficulty } = body;
+        const { name, description, image, banner, awardImage, legs } = body;
 
         if (!name || !description || !legs?.length) {
             return NextResponse.json({ error: 'Name, description, and at least one leg are required' }, { status: 400 });
@@ -67,9 +67,6 @@ export async function POST(request: NextRequest) {
                 distance_nm: leg.distance_nm || 0,
             })),
             total_distance: totalDistance,
-            reward_credits: rewardCredits || 0,
-            reward_badge: rewardBadge || undefined,
-            difficulty: difficulty || 'medium',
             active: true,
         });
 
@@ -92,7 +89,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, name, description, image, banner, awardImage, legs, rewardCredits, rewardBadge, difficulty, active } = body;
+        const { id, name, description, image, banner, awardImage, legs, active } = body;
 
         const updateData: any = {};
         
@@ -101,9 +98,6 @@ export async function PUT(request: NextRequest) {
         if (image !== undefined) updateData.image = image;
         if (banner !== undefined) updateData.banner = banner;
         if (awardImage !== undefined) updateData.award_image = awardImage;
-        if (difficulty !== undefined) updateData.difficulty = difficulty;
-        if (rewardCredits !== undefined) updateData.reward_credits = rewardCredits;
-        if (rewardBadge !== undefined) updateData.reward_badge = rewardBadge;
         if (active !== undefined) updateData.active = active;
         
         if (legs) {
