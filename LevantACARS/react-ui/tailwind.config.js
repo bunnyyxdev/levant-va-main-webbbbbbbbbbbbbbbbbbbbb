@@ -20,9 +20,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Winky Sans', 'Manrope', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Shadows Into Light Two', 'cursive', 'sans-serif'],
       },
       fontSize: {
         'telemetry-label': ['0.625rem', { lineHeight: '1', letterSpacing: '0.2em', fontWeight: '700' }],
