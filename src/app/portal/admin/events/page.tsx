@@ -23,6 +23,8 @@ export default function AdminEventsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+
     // Form State
     const [formData, setFormData] = useState<Partial<Event>>({
         title: '',
@@ -268,13 +270,66 @@ export default function AdminEventsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm text-gray-400">Banner Image URL</label>
-                                <input
-                                    type="text"
-                                    value={formData.banner_image}
-                                    onChange={(e) => setFormData({ ...formData, banner_image: e.target.value })}
-                                    className="w-full bg-[#111]/50 border border-white/[0.08] rounded-lg p-2 text-white"
-                                />
+                                <label className="text-sm text-gray-400">Banner Image</label>
+
+                                <div className="flex flex-col gap-3">
+                                    <div className="w-full h-40 bg-[#0a0a0a] rounded-xl overflow-hidden border border-white/[0.08]">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={formData.banner_image || '/img/events/default.jpg'}
+                                            alt="Banner preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold cursor-pointer transition-all border border-white/[0.08] ${
+                                            uploadingBanner ? 'opacity-60 pointer-events-none' : 'hover:bg-white/5'
+                                        }`}>
+                                            <ImageIcon className="w-4 h-4 text-accent-gold" />
+                                            <span className="text-sm text-white">Upload Image</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    if (!file.type.startsWith('image/')) {
+                                                        toast.error('Please select an image file');
+                                                        return;
+                                                    }
+                                                    setUploadingBanner(true);
+                                                    try {
+                                                        const fd = new FormData();
+                                                        fd.append('file', file);
+                                                        fd.append('name', `${formData.title || 'event'}_banner`);
+
+                                                        const res = await fetch('/api/cloudinary/event-upload', {
+                                                            method: 'POST',
+                                                            body: fd,
+                                                        });
+                                                        const data = await res.json();
+                                                        if (!res.ok || !data.url) {
+                                                            throw new Error(data.error || 'Upload failed');
+                                                        }
+                                                        setFormData(prev => ({ ...prev, banner_image: data.url }));
+                                                        toast.success('Banner uploaded');
+                                                    } catch (err: any) {
+                                                        toast.error(err?.message || 'Upload failed');
+                                                    } finally {
+                                                        setUploadingBanner(false);
+                                                        e.target.value = '';
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+
+                                        {uploadingBanner && (
+                                            <span className="text-xs text-gray-400">Uploading...</span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
