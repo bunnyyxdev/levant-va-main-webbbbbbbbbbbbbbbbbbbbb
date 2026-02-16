@@ -583,19 +583,57 @@ async function handleFlightStart(params: {
 
     try {
         const pilot = await findPilot(pilotId);
-        if (!pilot) return NextResponse.json({ error: 'Pilot not found' }, { status: 404 });
+        if (!pilot) {
+            console.error(`[ACARS FlightStart] Pilot not found: ${pilotId}`);
+            return NextResponse.json({ error: 'Pilot not found' }, { status: 404 });
+        }
         
         const pilotName = `${pilot.first_name} ${pilot.last_name}`;
+        console.log(`[ACARS FlightStart] Starting flight for ${pilot.pilot_id} (${pilotName}): ${callsign} ${departureIcao}→${arrivalIcao}`);
 
         // Remove any existing active flight for this pilot to prevent duplicates
-        await ActiveFlight.deleteMany({ pilot_id: pilot._id });
-
-        // Mark the active bid as InProgress so it's distinguishable from idle bookings
-        let activeBid = await Bid.findOne({ pilot_id: pilot._id, callsign, status: 'Active' });
-        if (!activeBid) {
-            activeBid = await Bid.findOne({ pilot_id: pilot._id.toString(), callsign, status: 'Active' });
+        const deletedFlights = await ActiveFlight.deleteMany({ pilot_id: pilot._id });
+        if (deletedFlights.deletedCount > 0) {
+            console.log(`[ACARS FlightStart] Cleared ${deletedFlights.deletedCount} existing active flight(s)`);
         }
+
+        // Find the active bid - try multiple strategies
+        let activeBid = await Bid.findOne({ 
+            pilot_id: pilot._id, 
+            callsign, 
+            status: 'Active' 
+        });
+        
+        // Fallback 1: Try with string pilot_id
+        if (!activeBid) {
+            activeBid = await Bid.findOne({ 
+                pilot_id: pilot._id.toString(), 
+                callsign, 
+                status: 'Active' 
+            });
+        }
+        
+        // Fallback 2: Try any Active bid for this pilot (ignore callsign mismatch)
+        if (!activeBid) {
+            activeBid = await Bid.findOne({ 
+                pilot_id: pilot._id, 
+                status: 'Active' 
+            }).sort({ created_at: -1 });
+            if (activeBid) {
+                console.log(`[ACARS FlightStart] Found Active bid with different callsign: ${activeBid.callsign} (requested: ${callsign})`);
+            }
+        }
+        
+        // Fallback 3: Try with string pilot_id
+        if (!activeBid) {
+            activeBid = await Bid.findOne({ 
+                pilot_id: pilot._id.toString(), 
+                status: 'Active' 
+            }).sort({ created_at: -1 });
+        }
+
         if (activeBid) {
+            console.log(`[ACARS FlightStart] Found bid ${activeBid._id}, marking as InProgress`);
             activeBid.status = 'InProgress';
             await activeBid.save();
 
@@ -605,10 +643,13 @@ async function handleFlightStart(params: {
                     { registration: activeBid.aircraft_registration, status: { $ne: 'Grounded' } },
                     { $set: { status: 'InFlight' } }
                 );
+                console.log(`[ACARS FlightStart] Marked aircraft ${activeBid.aircraft_registration} as InFlight`);
             }
+        } else {
+            console.warn(`[ACARS FlightStart] No Active bid found for pilot ${pilot.pilot_id} - flight will start without bid`);
         }
 
-        await ActiveFlight.create({
+        const newFlight = await ActiveFlight.create({
             pilot_id: pilot._id,
             pilot_name: pilotName,
             callsign,
@@ -621,8 +662,10 @@ async function handleFlightStart(params: {
             started_at: new Date(),
             last_update: new Date()
         });
+        
+        console.log(`[ACARS FlightStart] Created ActiveFlight ${newFlight._id} for ${callsign}`);
     } catch (error: any) {
-        console.error('ACARS Flight Start Error:', error);
+        console.error('[ACARS FlightStart] Error:', error.message, error.stack);
         return NextResponse.json({ error: 'Failed to start flight', details: error.message }, { status: 500 });
     }
 
