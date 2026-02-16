@@ -27,7 +27,6 @@ export default function ToursPage() {
     const [tours, setTours] = useState<Tour[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-    const [difficulty, setDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
     const [query, setQuery] = useState('');
 
     const [page, setPage] = useState(1);
@@ -40,17 +39,11 @@ export default function ToursPage() {
         return '';
     }, [filter]);
 
-    const apiDifficulty = useMemo(() => {
-        if (difficulty === 'all') return '';
-        return difficulty;
-    }, [difficulty]);
-
     const fetchTours = async (opts: { page: number; append: boolean }) => {
         const { page: nextPage, append } = opts;
         try {
             const params = new URLSearchParams();
             if (query.trim()) params.set('q', query.trim());
-            if (apiDifficulty) params.set('difficulty', apiDifficulty);
             if (apiStatus) params.set('status', apiStatus);
             params.set('page', String(nextPage));
             params.set('limit', '12');
@@ -80,7 +73,7 @@ export default function ToursPage() {
         setPage(1);
         fetchTours({ page: 1, append: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [apiStatus, apiDifficulty]);
+    }, [apiStatus]);
 
     useEffect(() => {
         const t = setTimeout(() => {
@@ -158,29 +151,6 @@ export default function ToursPage() {
                             placeholder="Search tours..."
                             className="w-full pl-9 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                         />
-                    </div>
-
-                    <div className="w-full p-1 rounded-xl bg-white/5 border border-white/10 flex">
-                        {(
-                            [
-                                { key: 'all', label: 'All' },
-                                { key: 'easy', label: 'Easy' },
-                                { key: 'medium', label: 'Medium' },
-                                { key: 'hard', label: 'Hard' },
-                            ] as const
-                        ).map((d) => (
-                            <button
-                                key={d.key}
-                                onClick={() => setDifficulty(d.key)}
-                                className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
-                                    difficulty === d.key
-                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/10'
-                                }`}
-                            >
-                                {d.label}
-                            </button>
-                        ))}
                     </div>
 
                     <div className="text-xs text-gray-500 flex items-center justify-between px-3 py-3 rounded-xl bg-white/5 border border-white/10">
