@@ -33,6 +33,9 @@ export default function AdminToursPage() {
     // Form state
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [image, setImage] = useState('');
+    const [banner, setBanner] = useState('');
+    const [awardImage, setAwardImage] = useState('');
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
     const [rewardCredits, setRewardCredits] = useState('');
     const [rewardBadge, setRewardBadge] = useState('');
@@ -52,6 +55,9 @@ export default function AdminToursPage() {
     const resetForm = () => {
         setName('');
         setDescription('');
+        setImage('');
+        setBanner('');
+        setAwardImage('');
         setDifficulty('medium');
         setRewardCredits('');
         setRewardBadge('');
@@ -68,6 +74,9 @@ export default function AdminToursPage() {
         setEditing(tour);
         setName(tour.name);
         setDescription(tour.description);
+        setImage((tour as any).image || '');
+        setBanner((tour as any).banner || '');
+        setAwardImage((tour as any).award_image || '');
         setDifficulty(tour.difficulty);
         setRewardCredits(tour.reward_credits.toString());
         setRewardBadge(tour.reward_badge || '');
@@ -112,6 +121,9 @@ export default function AdminToursPage() {
                 ...(editing && { id: editing._id }),
                 name,
                 description,
+                image: image || undefined,
+                banner: banner || undefined,
+                awardImage: awardImage || undefined,
                 difficulty,
                 rewardCredits: parseInt(rewardCredits) || 0,
                 rewardBadge: rewardBadge || undefined,
@@ -263,6 +275,38 @@ export default function AdminToursPage() {
                                     rows={3}
                                     className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white"
                                 />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Tour Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={image}
+                                        onChange={e => setImage(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Banner Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={banner}
+                                        onChange={e => setBanner(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">Award Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={awardImage}
+                                        onChange={e => setAwardImage(e.target.value)}
+                                        placeholder="https://..."
+                                        className="w-full bg-[#111] border border-white/[0.08] rounded px-4 py-3 text-white text-sm"
+                                    />
+                                </div>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <div>

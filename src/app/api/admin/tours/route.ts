@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, description, legs, rewardCredits, rewardBadge, difficulty } = body;
+        const { name, description, image, banner, awardImage, legs, rewardCredits, rewardBadge, difficulty } = body;
 
         if (!name || !description || !legs?.length) {
             return NextResponse.json({ error: 'Name, description, and at least one leg are required' }, { status: 400 });
@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
         const tour = await Tour.create({
             name,
             description,
+            image: image || undefined,
+            banner: banner || undefined,
+            award_image: awardImage || undefined,
             legs: legs.map((leg: any, i: number) => ({
                 leg_number: i + 1,
                 departure_icao: leg.departure_icao.toUpperCase(),
@@ -89,12 +92,15 @@ export async function PUT(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { id, name, description, legs, rewardCredits, rewardBadge, difficulty, active } = body;
+        const { id, name, description, image, banner, awardImage, legs, rewardCredits, rewardBadge, difficulty, active } = body;
 
         const updateData: any = {};
         
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
+        if (image !== undefined) updateData.image = image;
+        if (banner !== undefined) updateData.banner = banner;
+        if (awardImage !== undefined) updateData.award_image = awardImage;
         if (difficulty !== undefined) updateData.difficulty = difficulty;
         if (rewardCredits !== undefined) updateData.reward_credits = rewardCredits;
         if (rewardBadge !== undefined) updateData.reward_badge = rewardBadge;
