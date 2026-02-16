@@ -1,22 +1,49 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import connectDB from '@/lib/database';
 import Tour from '@/models/Tour';
 import TourProgress from '@/models/TourProgress';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const session = await verifyAuth(); // Optional: If public, remove this. But we need it for progress check.
         await connectDB();
 
+        const { searchParams } = new URL(request.url);
+        const q = (searchParams.get('q') || '').trim();
+        const difficulty = (searchParams.get('difficulty') || '').trim();
+        const status = (searchParams.get('status') || '').trim();
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+        const limitRaw = parseInt(searchParams.get('limit') || '24', 10) || 24;
+        const limit = Math.min(60, Math.max(6, limitRaw));
+        const skip = (page - 1) * limit;
+
         const now = new Date();
-        const tours = await Tour.find({
+        const query: any = {
             active: true,
             $and: [
                 { $or: [{ start_date: { $exists: false } }, { start_date: null }, { start_date: { $lte: now } }] },
                 { $or: [{ end_date: { $exists: false } }, { end_date: null }, { end_date: { $gte: now } }] },
             ],
-        }).lean();
+        };
+
+        if (q) {
+            query.$or = [
+                { name: { $regex: q, $options: 'i' } },
+                { description: { $regex: q, $options: 'i' } },
+            ];
+        }
+
+        if (difficulty && ['easy', 'medium', 'hard'].includes(difficulty)) {
+            query.difficulty = difficulty;
+        }
+
+        const total = await Tour.countDocuments(query);
+        const tours = await Tour.find(query)
+            .sort({ created_at: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
         
         // Fetch user progress for all tours if logged in
         let progressMap: Record<string, any> = {};
@@ -27,7 +54,7 @@ export async function GET() {
             });
         }
 
-        const enrichedTours = tours.map((t: any) => {
+        let enrichedTours = tours.map((t: any) => {
             const p = progressMap[t._id.toString()];
 
             const completedLegs = Array.isArray(p?.completed_legs)
@@ -53,10 +80,16 @@ export async function GET() {
             };
         });
 
-        return NextResponse.json({ tours: enrichedTours });
+        if (status === 'completed') {
+            enrichedTours = enrichedTours.filter(t => t.userProgress?.completed);
+        } else if (status === 'active') {
+            enrichedTours = enrichedTours.filter(t => !t.userProgress?.completed);
+        }
+
+        return NextResponse.json({ tours: enrichedTours, total, page, limit });
 
     } catch (error) {
         console.error('Tours API Error:', error);
-        return NextResponse.json({ tours: [] }, { status: 500 });
+        return NextResponse.json({ tours: [], total: 0, page: 1, limit: 24 }, { status: 500 });
     }
 }

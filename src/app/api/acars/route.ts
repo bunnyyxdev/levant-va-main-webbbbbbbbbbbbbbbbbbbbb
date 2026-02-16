@@ -10,6 +10,7 @@ import TourProgress from '@/models/TourProgress';
 import Activity from '@/models/Activity';
 import ActivityProgress from '@/models/ActivityProgress';
 import EventBooking from '@/models/EventBooking';
+import Event from '@/models/Event';
 import bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { triggerFlightUpdate } from '@/lib/pusher';
@@ -998,6 +999,59 @@ async function handlePirep(params: {
             passenger_rating: Math.max(1, Math.min(5, Math.ceil((score || 100) / 20))),
             passenger_review: generatePassengerReview(landingRate, score || 100)
         });
+
+        // --- EVENT BOOKING AUTO-MATCH ---
+        // If the pilot booked an event, and this PIREP is filed within the event time window,
+        // mark the booking as attended and link the flight to the event.
+        try {
+            const booking = await EventBooking.findOne({
+                pilot_id: pilot._id,
+                status: 'booked',
+            }).sort({ booked_at: -1 });
+
+            if (booking) {
+                const event = await Event.findById(booking.event_id);
+                if (event?.is_active) {
+                    const start = (event.start_time || event.start_datetime) ? new Date(event.start_time || event.start_datetime) : null;
+                    const end = (event.end_time || event.end_datetime) ? new Date(event.end_time || event.end_datetime) : null;
+                    const t = new Date(newFlight.submitted_at);
+
+                    // If no end is configured, allow a generous window of 12h from start.
+                    const effectiveEnd = end || (start ? new Date(start.getTime() + 12 * 60 * 60 * 1000) : null);
+
+                    const inWindow = !!(start && effectiveEnd && t >= start && t <= effectiveEnd);
+
+                    // Optional: match airports if event has airports configured.
+                    const evAirports = (event.airports || []).map((a: string) => a.toUpperCase());
+                    const flightDep = (departureIcao || '').toUpperCase();
+                    const flightArr = (arrivalIcao || '').toUpperCase();
+                    const airportsMatch = evAirports.length === 0
+                        ? true
+                        : (evAirports.includes(flightDep) || evAirports.includes(flightArr));
+
+                    if (inWindow && airportsMatch) {
+                        await EventBooking.updateOne(
+                            { _id: booking._id },
+                            {
+                                $set: {
+                                    status: 'attended',
+                                    flight_id: newFlight._id,
+                                    attended_at: new Date(),
+                                }
+                            }
+                        );
+
+                        await Flight.updateOne(
+                            { _id: newFlight._id },
+                            { $set: { event_id: event._id } }
+                        );
+                    }
+                }
+            }
+        } catch (e) {
+            // Do not fail PIREP submission on event match issues
+            console.error('[ACARS] Event booking match failed:', e);
+        }
 
         // Helper to generate dynamic reviews
         function generatePassengerReview(rate: number, score: number) {

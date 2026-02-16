@@ -12,10 +12,15 @@ export async function GET() {
         const now = new Date();
         now.setDate(now.getDate() - 1); // Show events from yesterday onwards
 
-        const events = await Event.find({ 
+        const events = await Event.find({
             is_active: true,
-            end_datetime: { $gte: now }
-        }).sort({ start_datetime: 1 });
+            $or: [
+                { end_time: { $gte: now } },
+                { end_datetime: { $gte: now } },
+                { end_time: { $exists: false } },
+                { end_datetime: { $exists: false } },
+            ],
+        }).sort({ start_time: 1, start_datetime: 1 });
 
         // If authenticated, enrich with booking status
         const session = await verifyAuth().catch(() => null);

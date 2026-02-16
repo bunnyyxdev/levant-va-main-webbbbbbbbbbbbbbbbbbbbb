@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Trophy, Map, ArrowRight, Loader2, Award, BookOpen, CheckCircle, Clock, Plane } from 'lucide-react';
+import { Trophy, Map, ArrowRight, Loader2, Award, BookOpen, CheckCircle, Plane, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Tour {
@@ -27,27 +27,78 @@ export default function ToursPage() {
     const [tours, setTours] = useState<Tour[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+    const [difficulty, setDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+    const [query, setQuery] = useState('');
+
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    const apiStatus = useMemo(() => {
+        if (filter === 'active') return 'active';
+        if (filter === 'completed') return 'completed';
+        return '';
+    }, [filter]);
+
+    const apiDifficulty = useMemo(() => {
+        if (difficulty === 'all') return '';
+        return difficulty;
+    }, [difficulty]);
+
+    const fetchTours = async (opts: { page: number; append: boolean }) => {
+        const { page: nextPage, append } = opts;
+        try {
+            const params = new URLSearchParams();
+            if (query.trim()) params.set('q', query.trim());
+            if (apiDifficulty) params.set('difficulty', apiDifficulty);
+            if (apiStatus) params.set('status', apiStatus);
+            params.set('page', String(nextPage));
+            params.set('limit', '12');
+
+            const res = await fetch(`/api/portal/tours?${params.toString()}`);
+            const data = await res.json();
+            const incoming: Tour[] = data.tours || [];
+
+            const total = typeof data.total === 'number' ? data.total : incoming.length;
+            const limit = typeof data.limit === 'number' ? data.limit : 12;
+
+            setTours(prev => {
+                const nextTours = append ? [...prev, ...incoming] : incoming;
+                setHasMore(nextTours.length < total && incoming.length >= limit);
+                return nextTours;
+            });
+        } catch (error) {
+            console.error('Failed to fetch tours', error);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchTours = async () => {
-            try {
-                const res = await fetch('/api/portal/tours');
-                const data = await res.json();
-                setTours(data.tours || []);
-            } catch (error) {
-                console.error("Failed to fetch tours", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchTours();
-    }, []);
+        setLoading(true);
+        setPage(1);
+        fetchTours({ page: 1, append: false });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [apiStatus, apiDifficulty]);
 
-    const filteredTours = tours.filter(tour => {
-        if (filter === 'active') return !tour.userProgress?.completed;
-        if (filter === 'completed') return tour.userProgress?.completed;
-        return true;
-    });
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setLoading(true);
+            setPage(1);
+            fetchTours({ page: 1, append: false });
+        }, 300);
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query]);
+
+    const handleLoadMore = async () => {
+        if (loadingMore || !hasMore) return;
+        const next = page + 1;
+        setLoadingMore(true);
+        setPage(next);
+        await fetchTours({ page: next, append: true });
+    };
 
     if (loading) return (
         <div className="flex h-96 items-center justify-center">
@@ -81,7 +132,8 @@ export default function ToursPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-3">
+                <div className="flex gap-2 flex-wrap">
                 {[{ key: 'all', label: 'All Tours' }, { key: 'active', label: 'Active' }, { key: 'completed', label: 'Completed' }].map((tab) => (
                     <button
                         key={tab.key}
@@ -95,17 +147,46 @@ export default function ToursPage() {
                         {tab.label}
                     </button>
                 ))}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+                    <div className="relative">
+                        <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search tours..."
+                            className="w-full pl-9 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                        />
+                    </div>
+
+                    <select
+                        value={difficulty}
+                        onChange={(e) => setDifficulty(e.target.value as any)}
+                        className="w-full px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                    >
+                        <option value="all">All Difficulties</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+
+                    <div className="text-xs text-gray-500 flex items-center justify-between px-3 py-3 rounded-xl bg-white/5 border border-white/10">
+                        <span className="uppercase tracking-widest font-bold">Loaded</span>
+                        <span className="font-mono text-gray-300">{tours.length}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Tours Grid */}
-            {filteredTours.length === 0 ? (
+            {tours.length === 0 ? (
                 <div className="p-12 text-center border-2 border-dashed border-white/10 rounded-3xl">
                     <Map className="w-16 h-16 mx-auto mb-4 text-gray-600" />
                     <p className="text-gray-500 text-lg">No tours found</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {filteredTours.map((tour, index) => (
+                    {tours.map((tour, index) => (
                         <motion.div
                             key={tour._id}
                             initial={{ opacity: 0, y: 20 }}
@@ -217,6 +298,19 @@ export default function ToursPage() {
                             </Link>
                         </motion.div>
                     ))}
+                </div>
+            )}
+
+            {/* Load More */}
+            {!loading && tours.length > 0 && (
+                <div className="flex justify-center pt-2">
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={!hasMore || loadingMore}
+                        className="px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-50 disabled:hover:bg-white/5"
+                    >
+                        {loadingMore ? 'Loading...' : (hasMore ? 'Load More' : 'No More Tours')}
+                    </button>
                 </div>
             )}
         </div>

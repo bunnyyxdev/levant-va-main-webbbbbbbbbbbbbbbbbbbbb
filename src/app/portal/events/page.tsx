@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Calendar, MapPin, Users, Clock, CheckCircle, ArrowRight, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -103,43 +104,45 @@ export default function EventsPage() {
                 <div className="grid gap-6">
                     {events.map((event) => (
                         <div key={event._id} className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl overflow-hidden group">
-                            <div className="h-48 md:h-64 relative">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={event.banner_image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
-                                
-                                <div className="absolute bottom-0 left-0 p-6 w-full">
-                                    <div className="flex justify-between items-end">
-                                        <div>
-                                            <span className={`text-xs font-bold px-2 py-1 rounded border uppercase tracking-wider mb-2 inline-block ${
-                                                event.type === 'real_ops' ? 'border-purple-500 bg-purple-500/20 text-purple-300' : 'border-blue-500 bg-blue-500/20 text-blue-300'
-                                            }`}>
-                                                {event.type}
-                                            </span>
-                                            <h2 className="text-3xl font-bold text-white mb-2">{event.title}</h2>
-                                            <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="w-4 h-4 text-accent-gold" />
-                                                    {formatDate(event.start_time)}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <MapPin className="w-4 h-4 text-accent-gold" />
-                                                    {event.airports.join(' ↔ ')}
+                            <Link href={`/portal/events/${event._id}`} className="block">
+                                <div className="h-48 md:h-64 relative">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={event.banner_image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent" />
+                                    
+                                    <div className="absolute bottom-0 left-0 p-6 w-full">
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded border uppercase tracking-wider mb-2 inline-block ${
+                                                    event.type === 'real_ops' ? 'border-purple-500 bg-purple-500/20 text-purple-300' : 'border-blue-500 bg-blue-500/20 text-blue-300'
+                                                }`}>
+                                                    {event.type}
+                                                </span>
+                                                <h2 className="text-3xl font-bold text-white mb-2">{event.title}</h2>
+                                                <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+                                                    <div className="flex items-center gap-1">
+                                                        <Clock className="w-4 h-4 text-accent-gold" />
+                                                        {formatDate(event.start_time)}
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <MapPin className="w-4 h-4 text-accent-gold" />
+                                                        {event.airports.join(' ↔ ')}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {event.booking_status === 'booked' ? (
-                                            <div className="bg-green-500 text-dark-900 px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-500/20">
-                                                <CheckCircle className="w-5 h-5" />
-                                                Booked
-                                            </div>
-                                        ) : (
-                                           <div />
-                                        )}
+                                            {event.booking_status === 'booked' ? (
+                                                <div className="bg-green-500 text-dark-900 px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-green-500/20">
+                                                    <CheckCircle className="w-5 h-5" />
+                                                    Booked
+                                                </div>
+                                            ) : (
+                                               <div />
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
 
                             <div className="p-6 flex flex-col md:flex-row gap-6 items-center">
                                 <div className="flex-1 text-gray-400 text-sm">

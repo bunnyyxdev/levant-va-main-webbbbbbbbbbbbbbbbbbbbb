@@ -44,6 +44,8 @@ export interface IFlight extends Document {
     submitted_at: Date;
     reviewed_at?: Date;
     reviewed_by?: mongoose.Types.ObjectId;
+
+    event_id?: mongoose.Types.ObjectId;
 }
 
 const FlightSchema = new Schema<IFlight>({
@@ -90,6 +92,8 @@ const FlightSchema = new Schema<IFlight>({
     submitted_at: { type: Date, default: Date.now, index: true },
     reviewed_at: Date,
     reviewed_by: { type: Schema.Types.ObjectId, ref: 'Pilot' },
+
+    event_id: { type: Schema.Types.ObjectId, ref: 'Event', index: true },
 });
 
 const Flight = mongoose.models.Flight || mongoose.model<IFlight>('Flight', FlightSchema);
